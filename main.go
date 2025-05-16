@@ -2,12 +2,35 @@ package main
 
 import (
 	"fmt"
-	"laraska/model"
-	"laraska/view"
+	"laraska/controller"
+	"os"
 )
 
 func main() {
-	var DataStasiun model.Stasiun
-	fmt.Scan(&DataStasiun.Nama)
-	view.FormStasiun(DataStasiun)
+	fmt.Print("\033]0;LarasKA\007")
+
+	controller.PrintBoxWithText(60, []string{
+		"LarasKA (Layanan Reservasi Kereta Api)",
+		"Telkom University Surabaya | Informatika",
+	})
+
+	controller.PrintBoxWithText(60, []string{
+		"Kelompok 2 : ",
+		"Rovino Ramadhani (103072400031)",
+		"Rangga Dani Prasetya (103072400057)",
+		"Setyo Nugroho (103072400045)",
+	})
+
+	var input string
+	fmt.Print("Masukan x untuk menjalankan program : ")
+	_, err := fmt.Scan(&input)
+
+	if err != nil || input != "x" {
+		fmt.Println("Invalid input. Please press x to run the program.")
+		os.Exit(0)
+	} else {
+		controller.ClearScreen()
+		controller.AuthController()
+	}
+
 }
