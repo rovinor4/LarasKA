@@ -1,10 +1,9 @@
 package model
 
+import "time"
+
 type Tiket struct {
-	Tanggal          string
-	Jam              string
-	IDPenumpang      string
-	Harga            int
-	IDRute           string
-	NomorTempatDuduk string
+	Penumpang Penumpang
+	Rute Rute
+	CreatedAt time.Time
 }

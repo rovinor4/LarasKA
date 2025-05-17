@@ -9,17 +9,25 @@ func MenuAwal() {
 	var input string
 	now := time.Now()
 
+	var menuList = []string{
+		"Data Stasiun",
+		"Data Penumpang",
+		"Data Rute",
+		"Data Kereta",
+		"Data Tiket",
+		"Keluar Akun",
+		"Tutup Program",
+	}
+
 	PrintBoxWithText(60, []string{
 		"LarasKA (Layanan Reservasi Kereta Api)",
 		now.Format("01-02-2006 15:04 WIB"),
 	})
-	fmt.Println("1. Data Stasiun")
-	fmt.Println("2. Data Penumpang")
-	fmt.Println("3. Data Rute")
-	fmt.Println("4. Data Kereta")
-	fmt.Println("5. Data Tiket")
-	fmt.Println("6. Data Admin")
-	fmt.Println("7. Keluar")
+
+	for index, menu := range menuList {
+		fmt.Printf("[%d] %s\n", index+1, menu)
+	}
+
 	Pembatas("-")
 	fmt.Print("Pilih menu: ")
 	fmt.Scan(&input)

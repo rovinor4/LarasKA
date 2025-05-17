@@ -91,25 +91,30 @@ func TambahStasiun() {
 
 func TampilkanStasiun(search ...string) {
 	var searchQuery, choice string
-	var jumlahData int
 
-	PrintJudul("Data Stasiun")
 	if len(search) > 0 {
 		searchQuery = search[0]
 	}
 
-	for index, st := range model.ListStasiun {
+	var mapped []map[string]string
+	for _, st := range model.ListStasiun {
 		if searchQuery == "" || strings.Contains(strings.ToLower(fmt.Sprintf("%s %s %s", st.Nama, st.IDStasiun, st.Kota)), strings.ToLower(searchQuery)) {
-			fmt.Printf("%d. %s (%s) - Kota %s \n", index+1, st.Nama, st.IDStasiun, st.Kota)
-			jumlahData += 1
+			mapped = append(mapped, map[string]string{
+				"IDStasiun": st.IDStasiun,
+				"Nama":      st.Nama,
+				"Kota":      st.Kota,
+			})
 		}
 	}
 
-	if jumlahData <= 0 {
-		fmt.Println("Tidak ditemukan data")
-	}
+	PrintTable(
+		[]string{"ID", "Nama", "Kota"},
+		mapped,
+		[]string{"IDStasiun", "Nama", "Kota"},
+		4,
+		"Data Stasiun",
+	)
 
-	Pembatas("-")
 	fmt.Println(ColorText("[1] Pencarian", 90, 49, false))
 	fmt.Println(ColorText("[2] Tampilkan Semua", 90, 49, false))
 	fmt.Println(ColorText("[3] Kembali Ke Menu Stasiun", 90, 49, false))
