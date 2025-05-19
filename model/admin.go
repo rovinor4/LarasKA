@@ -4,13 +4,10 @@ type Admin struct {
 	Name     string
 	Username string
 	Pass     string
-	Role     int // 1 = admin, 2 = bording pass, 3 = loket
+	Role     int // 1 = admin, 2 = bording pass
 }
 
 var ListAdmin = []Admin{
 	{Name: "Admin", Username: "admin", Pass: "admin", Role: 1},
 	{Name: "Bording Pass", Username: "bording", Pass: "bording", Role: 2},
-	{Name: "Loket", Username: "loket", Pass: "loket", Role: 3},
 }
-
-

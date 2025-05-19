@@ -48,7 +48,7 @@ func MenuStasiun() {
 		HapusStasiun()
 	case "5":
 		ClearScreen()
-		MenuAwal()
+		MenuAwalAdmin()
 	default:
 		PrintError("Pilihan tidak valid, silakan coba lagi.")
 		MenuStasiun()

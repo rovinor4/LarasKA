@@ -30,10 +30,7 @@ func ColorText(text string, fg, bg int, bold bool) string {
 }
 
 func PrintJudul(judul string) {
-	// fmt.Println(strings.Repeat("-", 60))
-	// fmt.Println("\033[32m" + judul + "\033[0m")
-	// fmt.Println(strings.Repeat("-", 60))
-
+	fmt.Println(strings.Repeat("-", 60))
 	fmt.Println(AlignTeksCenter(judul, 60))
 	fmt.Println(strings.Repeat("-", 60))
 }
@@ -64,9 +61,12 @@ func isNumeric(input string) bool {
 }
 
 func AlignTeksCenter(teks string, width int) string {
-	padding := (width - len(teks)) / 2
-	return strings.Repeat(" ", padding) + teks
+	padding := width - len(teks)
+	left := padding / 2
+	right := padding - left
+	return strings.Repeat(" ", left) + teks + strings.Repeat(" ", right)
 }
+
 
 func PrintTable(col []string, data []map[string]string, rowKey []string, gap int, nameTable string) {
 	colWidths := make([]int, len(col))
@@ -84,9 +84,16 @@ func PrintTable(col []string, data []map[string]string, rowKey []string, gap int
 	for _, w := range colWidths {
 		totalWidth += w + gap
 	}
+	
+	minWidth := totalWidth
+	if totalWidth < 60 {
+		minWidth = 60
+	}
 
-	fmt.Println(AlignTeksCenter(nameTable, totalWidth))
-	line := strings.Repeat("-", totalWidth)
+
+	line := strings.Repeat("-", minWidth)
+	fmt.Println(line)
+	fmt.Println(AlignTeksCenter(nameTable, minWidth))
 	fmt.Println(line)
 
 	format := ""
@@ -105,7 +112,7 @@ func PrintTable(col []string, data []map[string]string, rowKey []string, gap int
 	fmt.Println(line)
 
 	if len(data) == 0 {
-		fmt.Println(AlignTeksCenter("Data Kosong", totalWidth))
+		fmt.Println(AlignTeksCenter("Data Kosong", minWidth))
 	} else {
 		for _, row := range data {
 			rowData := make([]any, len(rowKey))

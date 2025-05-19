@@ -34,45 +34,36 @@ func MenuKereta() {
 		return
 	}
 
-	switch choice {
-	case "1":
+	switch {
+	case choice == "1":
 		ClearScreen()
 		TampilkanKereta()
-	case "2":
+	case choice == "2":
 		ClearScreen()
 		TambahKereta()
-	case "3":
+	case choice == "3":
 		ClearScreen()
 		EditKereta()
-	case "4":
+	case choice == "4":
 		ClearScreen()
 		HapusKereta()
-	case "5":
+	case choice == "5":
 		ClearScreen()
-		return
+		MenuAwalAdmin()
 	default:
 		PrintError("Pilihan tidak valid, silakan coba lagi.")
 		MenuKereta()
 	}
 }
 
-func tableKereta(Title string, searchPrams ...string) {
+func TableKereta(Title string) {
 	var mapped []map[string]string
-	var searchQuery string
-
-	if len(searchPrams) > 0 {
-		searchQuery = searchPrams[0]
-	}
-
 	for _, dt := range model.ListKereta {
-		if searchQuery == "" || strings.Contains(strings.ToLower(fmt.Sprintf("%s %s %d", dt.Nama, dt.Kelas, dt.Kode)), strings.ToLower(searchQuery)) {
-			mapped = append(mapped, map[string]string{
-				"Kode":  strconv.Itoa(dt.Kode),
-				"Nama":  dt.Nama,
-				"Kelas": dt.Kelas,
-			})
-		}
-
+		mapped = append(mapped, map[string]string{
+			"Kode":  strconv.Itoa(dt.Kode),
+			"Nama":  dt.Nama,
+			"Kelas": dt.Kelas,
+		})
 	}
 
 	PrintTable(
@@ -84,45 +75,99 @@ func tableKereta(Title string, searchPrams ...string) {
 	)
 }
 
-func TampilkanKereta(search ...string) {
+func TampilkanKereta() {
 
-	var menu, searchOn string
+	var searchOn, sortOn, sortType string
 
-	if len(search) > 0 {
-		searchOn = search[0]
-	}
-
+	stop := false
 	reader := bufio.NewReader(os.Stdin)
-	tableKereta("Tampilkan Data Kereta", searchOn)
-	fmt.Println(ColorText("[1] Pencarian", 90, 49, false))
-	fmt.Println(ColorText("[2] Tampilkan Seluruh Data", 90, 49, false))
-	fmt.Println(ColorText("[3] Kembali Ke Menu Stasiun", 90, 49, false))
-	fmt.Print("Masukan nomor menu : ")
-	_, err := fmt.Scan(&menu)
 
-	if err != nil || !isNumeric(menu) {
-		PrintError("Pilihan tidak valid, silakan coba lagi.")
-		TampilkanKereta("")
-	}
+	for !stop {
+		var menu string
+		var mapped []map[string]string
+		Data := model.ListKereta
 
-	switch menu {
-	case "1":
-		fmt.Print("Masukan keyword pencarian : ")
-		search, err := reader.ReadString('\n')
-		if err != nil {
-			return
+		switch {
+		case sortOn == "" && sortType == "":
+			Data = InsertionSort(Data, func(a, b model.Kereta) bool { return a.Kode < b.Kode })
+		case sortOn == "Kode" && sortType == "asc":
+			Data = InsertionSort(Data, func(a, b model.Kereta) bool { return a.Kode < b.Kode })
+		case sortOn == "Kode" && sortType == "desc":
+			Data = InsertionSort(Data, func(a, b model.Kereta) bool { return a.Kode > b.Kode })
+		case sortOn == "Nama" && sortType == "asc":
+			Data = InsertionSort(Data, func(a, b model.Kereta) bool { return strings.ToLower(a.Nama) < strings.ToLower(b.Nama) })
+		case sortOn == "Nama" && sortType == "desc":
+			Data = InsertionSort(Data, func(a, b model.Kereta) bool { return strings.ToLower(a.Nama) > strings.ToLower(b.Nama) })
+		case sortOn == "Kelas" && sortType == "asc":
+			Data = InsertionSort(Data, func(a, b model.Kereta) bool { return strings.ToLower(a.Kelas) < strings.ToLower(b.Kelas) })
+		case sortOn == "Kelas" && sortType == "desc":
+			Data = InsertionSort(Data, func(a, b model.Kereta) bool { return strings.ToLower(a.Kelas) > strings.ToLower(b.Kelas) })
 		}
-		ClearScreen()
-		TampilkanKereta(strings.TrimSpace(search))
-	case "2":
-		ClearScreen()
-		TampilkanKereta()
-	case "3":
-		ClearScreen()
-		MenuKereta()
-	default:
-		PrintError("Pilihan tidak valid, silakan coba lagi.")
-		TampilkanKereta()
+
+		for _, dt := range Data {
+			if searchOn == "" || strings.Contains(strings.ToLower(fmt.Sprintf("%s %s %d", dt.Nama, dt.Kelas, dt.Kode)), strings.ToLower(searchOn)) {
+				mapped = append(mapped, map[string]string{
+					"Kode":  strconv.Itoa(dt.Kode),
+					"Nama":  dt.Nama,
+					"Kelas": dt.Kelas,
+				})
+			}
+
+		}
+
+		Title := "Data Kereta"
+		if searchOn != "" {
+			Title = fmt.Sprintf("Hasil Pencarian Data Kereta : %s", searchOn)
+		}
+
+		PrintTable(
+			[]string{"Kode", "Nama", "Kelas"},
+			mapped,
+			[]string{"Kode", "Nama", "Kelas"},
+			4,
+			Title,
+		)
+
+		fmt.Println(ColorText("[1] Pencarian", 90, 49, false))
+		fmt.Println(ColorText("[2] Tampilkan Seluruh Data", 90, 49, false))
+		fmt.Println(ColorText("[3] Sorting Data", 90, 49, false))
+		fmt.Println(ColorText("[4] Kembali Ke Menu Stasiun", 90, 49, false))
+
+		Pembatas("-")
+
+		fmt.Print("Masukan nomor menu : ")
+		_, err := fmt.Scan(&menu)
+		if err != nil || !isNumeric(menu) {
+			ClearScreen()
+			PrintError("Pilihan tidak valid, silakan coba lagi.")
+		}
+
+		switch menu {
+		case "1":
+			fmt.Print("Masukan keyword pencarian : ")
+			search, _ := reader.ReadString('\n')
+			searchOn = strings.TrimSpace(search)
+			ClearScreen()
+		case "2":
+			searchOn = ""
+			sortOn = ""
+			sortType = ""
+			ClearScreen()
+		case "3":
+			fmt.Print("Pilih kolom untuk sort : ")
+			fmt.Scan(&sortOn)
+			fmt.Print("Pilih jenis sort (asc/desc) : ")
+			fmt.Scan(&sortType)
+			ClearScreen()
+		case "4":
+			stop = true
+			ClearScreen()
+			MenuKereta()
+		default:
+			ClearScreen()
+			PrintError("Pilihan tidak valid, silakan coba lagi.")
+		}
+
 	}
 
 }
@@ -163,7 +208,7 @@ func TambahKereta() {
 func EditKereta() {
 	reader := bufio.NewReader(os.Stdin)
 	var kode int
-	tableKereta("Edit Data Kereta")
+	TableKereta("Edit Data Kereta")
 	fmt.Print("Masukan Kode Kereta untuk diubah: ")
 	fmt.Scan(&kode)
 	for i, kt := range model.ListKereta {
@@ -192,16 +237,21 @@ func EditKereta() {
 
 func HapusKereta() {
 	var kode int
+	TableKereta("Hapus Data Kereta")
+Input:
 	fmt.Print("Masukan Kode Kereta untuk dihapus: ")
 	fmt.Scan(&kode)
 	for i, kt := range model.ListKereta {
 		if kt.Kode == kode {
 			model.ListKereta = append(model.ListKereta[:i], model.ListKereta[i+1:]...)
+			ClearScreen()
 			fmt.Println("Kereta berhasil dihapus.")
-			TampilkanKereta()
+			MenuKereta()
 			return
 		}
 	}
+
 	PrintError("Kode kereta tidak ditemukan.")
-	MenuKereta()
+	goto Input
+
 }
