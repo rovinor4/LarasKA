@@ -3,186 +3,59 @@ package model
 import "time"
 
 type Rute struct {
-	Kode          string
-	Harga         int
-	Kapasitas     int
-	Gerbong       int
-	Keberangkatan time.Time
-	Kedatangan    time.Time
-	Kereta        Kereta
-	StasiunAwal   Stasiun
-	StasiunTujuan Stasiun
+	Kode         string
+	Nama         string
+	HargaTetap   bool
+	Harga        int
+	Gerbong      int
+	Kereta       Kereta
+	StasiunAwal  Stasiun
+	StasiunAkhir Stasiun
+	RuteBerhenti []RuteBerhenti
 }
 
-var ListRute = []Rute{
-	// Kereta 0, 3 rute
+type RuteBerhenti struct {
+	Berangkat    time.Time
+	Tiba         time.Time
+	StasiunAwal  Stasiun
+	StasiunAkhir Stasiun
+}
+
+var RuteList []Rute = []Rute{
 	{
-		Kode:          "R001",
-		Harga:         100000,
-		Kapasitas:     200,
-		Gerbong:       5,
-		Keberangkatan: time.Date(2025, 5, 20, 6, 0, 0, 0, time.Local),
-		Kedatangan:    time.Date(2025, 5, 20, 8, 0, 0, 0, time.Local),
-		Kereta:        ListKereta[0],
-		StasiunAwal:   ListStasiun[0],
-		StasiunTujuan: ListStasiun[1],
-	},
-	{
-		Kode:          "R002",
-		Harga:         110000,
-		Kapasitas:     200,
-		Gerbong:       5,
-		Keberangkatan: time.Date(2025, 5, 20, 8, 0, 0, 0, time.Local),
-		Kedatangan:    time.Date(2025, 5, 20, 10, 0, 0, 0, time.Local),
-		Kereta:        ListKereta[0],
-		StasiunAwal:   ListStasiun[1],
-		StasiunTujuan: ListStasiun[2],
-	},
-	{
-		Kode:          "R003",
-		Harga:         120000,
-		Kapasitas:     200,
-		Gerbong:       5,
-		Keberangkatan: time.Date(2025, 5, 20, 10, 0, 0, 0, time.Local),
-		Kedatangan:    time.Date(2025, 5, 20, 12, 0, 0, 0, time.Local),
-		Kereta:        ListKereta[0],
-		StasiunAwal:   ListStasiun[2],
-		StasiunTujuan: ListStasiun[3],
-	},
-	// Kereta 1, 3 rute
-	{
-		Kode:          "R004",
-		Harga:         100000,
-		Kapasitas:     200,
-		Gerbong:       5,
-		Keberangkatan: time.Date(2025, 5, 20, 6, 0, 0, 0, time.Local),
-		Kedatangan:    time.Date(2025, 5, 20, 8, 0, 0, 0, time.Local),
-		Kereta:        ListKereta[1],
-		StasiunAwal:   ListStasiun[1],
-		StasiunTujuan: ListStasiun[2],
-	},
-	{
-		Kode:          "R005",
-		Harga:         110000,
-		Kapasitas:     200,
-		Gerbong:       5,
-		Keberangkatan: time.Date(2025, 5, 20, 8, 0, 0, 0, time.Local),
-		Kedatangan:    time.Date(2025, 5, 20, 10, 0, 0, 0, time.Local),
-		Kereta:        ListKereta[1],
-		StasiunAwal:   ListStasiun[2],
-		StasiunTujuan: ListStasiun[3],
-	},
-	{
-		Kode:          "R006",
-		Harga:         120000,
-		Kapasitas:     200,
-		Gerbong:       5,
-		Keberangkatan: time.Date(2025, 5, 20, 10, 0, 0, 0, time.Local),
-		Kedatangan:    time.Date(2025, 5, 20, 12, 0, 0, 0, time.Local),
-		Kereta:        ListKereta[1],
-		StasiunAwal:   ListStasiun[3],
-		StasiunTujuan: ListStasiun[4],
-	},
-	// Kereta 2, 3 rute
-	{
-		Kode:          "R007",
-		Harga:         100000,
-		Kapasitas:     200,
-		Gerbong:       5,
-		Keberangkatan: time.Date(2025, 5, 20, 6, 0, 0, 0, time.Local),
-		Kedatangan:    time.Date(2025, 5, 20, 8, 0, 0, 0, time.Local),
-		Kereta:        ListKereta[2],
-		StasiunAwal:   ListStasiun[2],
-		StasiunTujuan: ListStasiun[3],
-	},
-	{
-		Kode:          "R008",
-		Harga:         110000,
-		Kapasitas:     200,
-		Gerbong:       5,
-		Keberangkatan: time.Date(2025, 5, 20, 8, 0, 0, 0, time.Local),
-		Kedatangan:    time.Date(2025, 5, 20, 10, 0, 0, 0, time.Local),
-		Kereta:        ListKereta[2],
-		StasiunAwal:   ListStasiun[3],
-		StasiunTujuan: ListStasiun[4],
-	},
-	{
-		Kode:          "R009",
-		Harga:         120000,
-		Kapasitas:     200,
-		Gerbong:       5,
-		Keberangkatan: time.Date(2025, 5, 20, 10, 0, 0, 0, time.Local),
-		Kedatangan:    time.Date(2025, 5, 20, 12, 0, 0, 0, time.Local),
-		Kereta:        ListKereta[2],
-		StasiunAwal:   ListStasiun[4],
-		StasiunTujuan: ListStasiun[5],
-	},
-	// Kereta 3, 3 rute
-	{
-		Kode:          "R010",
-		Harga:         100000,
-		Kapasitas:     200,
-		Gerbong:       5,
-		Keberangkatan: time.Date(2025, 5, 20, 6, 0, 0, 0, time.Local),
-		Kedatangan:    time.Date(2025, 5, 20, 8, 0, 0, 0, time.Local),
-		Kereta:        ListKereta[3],
-		StasiunAwal:   ListStasiun[3],
-		StasiunTujuan: ListStasiun[4],
-	},
-	{
-		Kode:          "R011",
-		Harga:         110000,
-		Kapasitas:     200,
-		Gerbong:       5,
-		Keberangkatan: time.Date(2025, 5, 20, 8, 0, 0, 0, time.Local),
-		Kedatangan:    time.Date(2025, 5, 20, 10, 0, 0, 0, time.Local),
-		Kereta:        ListKereta[3],
-		StasiunAwal:   ListStasiun[4],
-		StasiunTujuan: ListStasiun[5],
-	},
-	{
-		Kode:          "R012",
-		Harga:         120000,
-		Kapasitas:     200,
-		Gerbong:       5,
-		Keberangkatan: time.Date(2025, 5, 20, 10, 0, 0, 0, time.Local),
-		Kedatangan:    time.Date(2025, 5, 20, 12, 0, 0, 0, time.Local),
-		Kereta:        ListKereta[3],
-		StasiunAwal:   ListStasiun[5],
-		StasiunTujuan: ListStasiun[6],
-	},
-	// Kereta 4, 3 rute
-	{
-		Kode:          "R013",
-		Harga:         100000,
-		Kapasitas:     200,
-		Gerbong:       5,
-		Keberangkatan: time.Date(2025, 5, 20, 6, 0, 0, 0, time.Local),
-		Kedatangan:    time.Date(2025, 5, 20, 8, 0, 0, 0, time.Local),
-		Kereta:        ListKereta[4],
-		StasiunAwal:   ListStasiun[4],
-		StasiunTujuan: ListStasiun[5],
-	},
-	{
-		Kode:          "R014",
-		Harga:         110000,
-		Kapasitas:     200,
-		Gerbong:       5,
-		Keberangkatan: time.Date(2025, 5, 20, 8, 0, 0, 0, time.Local),
-		Kedatangan:    time.Date(2025, 5, 20, 10, 0, 0, 0, time.Local),
-		Kereta:        ListKereta[4],
-		StasiunAwal:   ListStasiun[5],
-		StasiunTujuan: ListStasiun[6],
-	},
-	{
-		Kode:          "R015",
-		Harga:         120000,
-		Kapasitas:     200,
-		Gerbong:       5,
-		Keberangkatan: time.Date(2025, 5, 20, 10, 0, 0, 0, time.Local),
-		Kedatangan:    time.Date(2025, 5, 20, 12, 0, 0, 0, time.Local),
-		Kereta:        ListKereta[4],
-		StasiunAwal:   ListStasiun[6],
-		StasiunTujuan: ListStasiun[7],
+		Kode:         "J305",
+		Nama:         "Jalur J",
+		Harga:        10000,
+		HargaTetap:   true,
+		Gerbong:      5,
+		Kereta:       ListKereta[1],
+		StasiunAwal:  ListStasiun[8],
+		StasiunAkhir: ListStasiun[1],
+		RuteBerhenti: []RuteBerhenti{
+			{
+				Berangkat:    time.Date(2023, 10, 1, 8, 0, 0, 0, time.UTC),
+				Tiba:         time.Date(2023, 10, 1, 8, 30, 0, 0, time.UTC),
+				StasiunAwal:  ListStasiun[8],
+				StasiunAkhir: ListStasiun[3],
+			},
+			{
+				Berangkat:    time.Date(2023, 10, 1, 8, 30, 0, 0, time.UTC),
+				Tiba:         time.Date(2023, 10, 1, 9, 0, 0, 0, time.UTC),
+				StasiunAwal:  ListStasiun[3],
+				StasiunAkhir: ListStasiun[2],
+			},
+			{
+				Berangkat:    time.Date(2023, 10, 1, 9, 0, 0, 0, time.UTC),
+				Tiba:         time.Date(2023, 10, 1, 9, 30, 0, 0, time.UTC),
+				StasiunAwal:  ListStasiun[2],
+				StasiunAkhir: ListStasiun[1],
+			},
+			{
+				Berangkat:    time.Date(2023, 10, 1, 9, 30, 0, 0, time.UTC),
+				Tiba:         time.Date(2023, 10, 1, 10, 0, 0, 0, time.UTC),
+				StasiunAwal:  ListStasiun[1],
+				StasiunAkhir: ListStasiun[0],
+			},
+		},
 	},
 }

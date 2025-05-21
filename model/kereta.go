@@ -7,16 +7,49 @@ type Kereta struct {
 }
 
 var ListKereta = []Kereta{
-	{Kode: 873, Nama: "Commuterline Jenggala", Kelas: "Ekonomi"},
-	{Kode: 219, Nama: "Argo Bromo Anggrek", Kelas: "Eksekutif"},
-	{Kode: 614, Nama: "Gajayana", Kelas: "Eksekutif"},
-	{Kode: 475, Nama: "Taksaka", Kelas: "Eksekutif"},
-	{Kode: 342, Nama: "Lodaya", Kelas: "Bisnis"},
-	{Kode: 981, Nama: "Mutiara Selatan", Kelas: "Bisnis"},
-	{Kode: 130, Nama: "Majapahit", Kelas: "Ekonomi"},
-	{Kode: 728, Nama: "Jayabaya", Kelas: "Ekonomi"},
-	{Kode: 599, Nama: "Kertajaya", Kelas: "Ekonomi"},
-	{Kode: 407, Nama: "Pasundan", Kelas: "Ekonomi"},
-	{Kode: 362, Nama: "Commuterline Dhoho", Kelas: "Ekonomi"},
-	{Kode: 290, Nama: "Commuterline Penataran", Kelas: "Ekonomi"},
+	{
+		Kode: 101,
+		Nama: "Commuter Line Arjonegoro",
+		Kelas: "Ekonomi",
+	},
+	{
+		Kode: 102,
+		Nama: "Commuter Line Dhoho",
+		Kelas: "Ekonomi",
+	},
+	{
+		Kode: 103,
+		Nama: "Commuter Line Penataran",
+		Kelas: "Ekonomi",
+	},
+	{
+		Kode: 104,
+		Nama: "Commuter Line Tumapel",
+		Kelas: "Ekonomi",
+	},
+	{
+		Kode: 105,
+		Nama: "Commuter Line Blambangan Ekspres",
+		Kelas: "Ekonomi",
+	},
+	{
+		Kode: 106,
+		Nama: "Commuter Line Probowangi",
+		Kelas: "Ekonomi",
+	},
+	{
+		Kode: 107,
+		Nama: "Commuter Line Jenggala",
+		Kelas: "Ekonomi",
+	},
+	{
+		Kode: 108,
+		Nama: "Commuter Line Supas",
+		Kelas: "Ekonomi",
+	},
+	{
+		Kode: 109,
+		Nama: "Commuter Line Arjuno Ekspres",
+		Kelas: "Ekonomi",
+	},
 }

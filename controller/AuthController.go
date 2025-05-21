@@ -32,7 +32,7 @@ Step1:
 	fmt.Print("Pilih menu : ")
 	_, err := fmt.Scan(&pilihan)
 
-	if err != nil || !isNumeric(pilihan) {
+	if err != nil || !IsNumeric(pilihan) {
 		ClearScreen()
 		PrintError(fmt.Sprintf("Pilihan %s tidak ada", pilihan))
 		goto Step1
@@ -82,7 +82,7 @@ Form:
 
 	if isNull == true {
 		PrintError("Username dan password salah")
-		Pembatas("-")
+		Divider("-")
 		goto Form
 	}
 }
@@ -118,7 +118,7 @@ FormNIK:
 		goto FormNIK
 	}
 
-	dataNIK := BinarySearch(model.ListUser, model.User{NIK: nik}, func(a, b model.User) int {
+	dataNIK := BinaryFindMany(model.ListUser, model.User{NIK: nik}, func(a, b model.User) int {
 		if a.NIK < b.NIK {
 			return -1
 		} else if a.NIK > b.NIK {
@@ -185,7 +185,7 @@ FormNoHp:
 		PrintError("Format No HP salah")
 		goto FormNoHp
 	}
-	dataNoHp := BinarySearch(model.ListUser, model.User{NoHP: noHp}, func(a, b model.User) int {
+	dataNoHp := BinaryFindMany(model.ListUser, model.User{NoHP: noHp}, func(a, b model.User) int {
 		if a.NoHP < b.NoHP {
 			return -1
 		} else if a.NoHP > b.NoHP {
@@ -206,7 +206,7 @@ FormEmail:
 		PrintError("Format Email salah")
 		goto FormEmail
 	}
-	dataEmail := BinarySearch(model.ListUser, model.User{Email: email}, func(a, b model.User) int {
+	dataEmail := BinaryFindMany(model.ListUser, model.User{Email: email}, func(a, b model.User) int {
 		if a.Email < b.Email {
 			return -1
 		} else if a.Email > b.Email {
