@@ -7,10 +7,6 @@ import (
 )
 
 func main() {
-
-controller.RuteController()
-return
-
 	controller.PrintBoxWithText(60, []string{
 		"LarasKA (Layanan Reservasi Kereta Api)",
 		"Telkom University Surabaya | Informatika",

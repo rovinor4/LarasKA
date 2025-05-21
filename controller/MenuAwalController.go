@@ -39,7 +39,7 @@ Step1:
 			MenuKereta()
 		case "3":
 			ClearScreen()
-			// MenuRute()
+			RuteController()
 		case "4":
 			ClearScreen()
 		case "5":
