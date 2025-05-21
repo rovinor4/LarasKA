@@ -19,15 +19,15 @@ func MenuStasiun() {
 		"Kembali ke Menu Awal",
 	}
 
-	PrintJudul("Menu Stasiun")
+	PrintHead("Menu Stasiun")
 	for index, menu := range menuList {
 		fmt.Printf("[%d] %s\n", index+1, menu)
 	}
-	Pembatas("-")
+	Divider("-")
 
 	fmt.Print("Pilih menu: ")
 	_, err := fmt.Scan(&choice)
-	if err != nil || !isNumeric(choice) {
+	if err != nil || !IsNumeric(choice) {
 		PrintError("Pilihan tidak valid, silakan coba lagi.")
 		MenuStasiun()
 		return
@@ -60,7 +60,7 @@ func TambahStasiun() {
 	reader := bufio.NewReader(os.Stdin)
 	var statiun model.Stasiun
 
-	PrintJudul("Tambah Stasiun")
+	PrintHead("Tambah Stasiun")
 	fmt.Print("Id Stasiun: ")
 	fmt.Scan(&statiun.IDStasiun)
 
@@ -122,7 +122,7 @@ func TampilkanStasiun(search ...string) {
 	fmt.Print("Pilih menu: ")
 	_, err := fmt.Scan(&choice)
 
-	if err != nil || !isNumeric(choice) {
+	if err != nil || !IsNumeric(choice) {
 		PrintError("Pilihan tidak valid, silakan coba lagi.\n")
 		TampilkanStasiun()
 	}
@@ -155,9 +155,9 @@ func ShowListStasiun() {
 }
 
 func HapusStasiun() {
-	PrintJudul("Hapus Stasiun")
+	PrintHead("Hapus Stasiun")
 	ShowListStasiun()
-	Pembatas("-")
+	Divider("-")
 
 	var choice int
 	fmt.Print("Pilih nomor stasiun yang ingin dihapus: ")
@@ -191,9 +191,9 @@ func HapusStasiun() {
 func EditStasiun() {
 	var pilihIndex int
 
-	PrintJudul("Edit Stasiun")
+	PrintHead("Edit Stasiun")
 	ShowListStasiun()
-	Pembatas("-")
+	Divider("-")
 
 	fmt.Print("Pilih nomor stasiun yang ingin di edit: ")
 	fmt.Scan(&pilihIndex)

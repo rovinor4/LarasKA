@@ -5,6 +5,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 func ClearScreen() {
@@ -29,7 +31,7 @@ func ColorText(text string, fg, bg int, bold bool) string {
 		strings.Join(attrs, ";"), text)
 }
 
-func PrintJudul(judul string) {
+func PrintHead(judul string) {
 	fmt.Println(strings.Repeat("-", 60))
 	fmt.Println(AlignTeksCenter(judul, 60))
 	fmt.Println(strings.Repeat("-", 60))
@@ -41,21 +43,32 @@ func PrintBoxWithText(lebar int, paragraphs []string) {
 	contentWidth := lebar - 2
 	for _, para := range paragraphs {
 		trimmed := strings.TrimSpace(para)
-		// Hitung spasi kiri dan kanan supaya teks di tengah horizontal
-		spasiKiri := (contentWidth - len(trimmed)) / 2
-		spasiKanan := contentWidth - len(trimmed) - spasiKiri
-
-		fmt.Println("|" + strings.Repeat(" ", spasiKiri) + trimmed + strings.Repeat(" ", spasiKanan) + "|")
+		spaceLeft := (contentWidth - len(trimmed)) / 2
+		spaceRight := contentWidth - len(trimmed) - spaceLeft
+		fmt.Println("|" + strings.Repeat(" ", spaceLeft) + trimmed + strings.Repeat(" ", spaceRight) + "|")
 	}
 
 	fmt.Println(strings.Repeat("-", lebar))
 }
 
-func Pembatas(s string) {
+func PrintBoxLeft(lebar int, paragraphs []string) {
+	fmt.Println(strings.Repeat("-", lebar))
+
+	contentWidth := lebar - 2
+	for _, para := range paragraphs {
+		trimmed := strings.TrimSpace(para)
+		text := " " + trimmed
+		fmt.Println("|" + text + strings.Repeat(" ", contentWidth-len(text)) + "|")
+	}
+
+	fmt.Println(strings.Repeat("-", lebar))
+}
+
+func Divider(s string) {
 	fmt.Println(strings.Repeat(s, 60))
 }
 
-func isNumeric(input string) bool {
+func IsNumeric(input string) bool {
 	re := regexp.MustCompile(`^\d+$`)
 	return re.MatchString(input)
 }
@@ -66,7 +79,6 @@ func AlignTeksCenter(teks string, width int) string {
 	right := padding - left
 	return strings.Repeat(" ", left) + teks + strings.Repeat(" ", right)
 }
-
 
 func PrintTable(col []string, data []map[string]string, rowKey []string, gap int, nameTable string) {
 	colWidths := make([]int, len(col))
@@ -84,12 +96,11 @@ func PrintTable(col []string, data []map[string]string, rowKey []string, gap int
 	for _, w := range colWidths {
 		totalWidth += w + gap
 	}
-	
+
 	minWidth := totalWidth
 	if totalWidth < 60 {
 		minWidth = 60
 	}
-
 
 	line := strings.Repeat("-", minWidth)
 	fmt.Println(line)
@@ -124,4 +135,10 @@ func PrintTable(col []string, data []map[string]string, rowKey []string, gap int
 	}
 
 	fmt.Println(line)
+}
+
+func RupiahFormat(r int) string {
+	p := message.NewPrinter(language.Indonesian)
+	// fmt.Println(p.Sprintf("Rp%d", 1000000)) // Output: Rp1.000.000
+	return p.Sprintf("Rp %d", r)
 }

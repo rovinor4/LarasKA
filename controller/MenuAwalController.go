@@ -26,7 +26,7 @@ Step1:
 		fmt.Println("[6] Keluar Akun")
 		fmt.Println("[7] Tutup Program")
 
-		Pembatas("-")
+		Divider("-")
 		fmt.Print("Pilih menu: ")
 		fmt.Scan(&input)
 
@@ -39,7 +39,7 @@ Step1:
 			MenuKereta()
 		case "3":
 			ClearScreen()
-			MenuRute()
+			// MenuRute()
 		case "4":
 			ClearScreen()
 		case "5":

@@ -7,486 +7,569 @@ import (
 	"os"
 	"strconv"
 	"strings"
-	"time"
 )
 
-func MenuRute() {
-	var choice string
-	var menuList = []string{
-		"Tampilkan Rute",
-		"Tambah Rute",
-		"Edit Rute",
-		"Hapus Rute",
-		"Kembali ke Menu Awal",
+func RuteController() {
+	reader := bufio.NewReader(os.Stdin)
+
+	var RuteListMap []map[string]string
+
+	for _, rute := range model.RuteList {
+		RuteListMap = append(RuteListMap, map[string]string{
+			"Kode":         rute.Kode,
+			"Nama":         rute.Nama,
+			"Harga":        RupiahFormat(rute.Harga),
+			"StasiunAwal":  rute.StasiunAwal.Nama,
+			"StasiunAkhir": rute.StasiunAkhir.Nama,
+		})
 	}
+	PrintTable([]string{"Kode", "Nama", "Harga", "Stasiun Awal", "Stasiun Akhir"}, RuteListMap, []string{"Kode", "Nama", "Harga", "StasiunAwal", "StasiunAkhir"}, 5, "Rute Kereta Api")
 
-	PrintJudul("Menu Rute")
-
-	for index, menu := range menuList {
-		fmt.Printf("[%d] %s\n", index+1, menu)
-	}
-	Pembatas("-")
-
+	fmt.Println(ColorText("[1] Lihat Detail", 90, 49, false))
+	fmt.Println(ColorText("[2] Tambah Rute", 90, 49, false))
+	fmt.Println(ColorText("[0] Kembali", 90, 49, false))
+	Divider("-")
+Step1:
 	fmt.Print("Pilih menu: ")
-	_, err := fmt.Scan(&choice)
-	if err != nil || !isNumeric(choice) {
-		PrintError("Pilihan tidak valid, silakan coba lagi.")
-		MenuRute()
-		return
+	Select, err := reader.ReadString('\n')
+	Select = strings.TrimSpace(Select)
+
+	if err != nil {
+		PrintError("Terjadi kesalahan")
+		goto Step1
 	}
 
-	switch choice {
+	if Select == "" && !IsNumeric(Select) {
+		PrintError("Pilihan tidak boleh kosong & harus berupa angka")
+	}
+
+Step2:
+	switch Select {
 	case "1":
+		fmt.Print("Pilih Kode Rute: ")
+		Kode, err := reader.ReadString('\n')
+		Kode = strings.TrimSpace(Kode)
+
+		if err != nil {
+			PrintError("Terjadi kesalahan")
+			goto Step2
+		}
+
+		if Kode == "" {
+			PrintError("Kode Rute Tidak Boleh Kosong")
+			goto Step2
+		}
+
+		Data, Have := FindOne(model.RuteList, model.Rute{Kode: Kode}, func(a, b model.Rute) int {
+			if a.Kode < b.Kode {
+				return -1
+			} else if a.Kode > b.Kode {
+				return 1
+			}
+			return 0
+		})
+
+		if !Have {
+			PrintError("Rute tidak ditemukan")
+			goto Step2
+		}
 		ClearScreen()
-		TampilkanRute()
+		DetailRute(Data)
 	case "2":
 		ClearScreen()
 		TambahRute()
-	case "3":
-		ClearScreen()
-		EditRute()
-	case "4":
-		ClearScreen()
-		HapusRute()
-	case "5":
-		ClearScreen()
 	default:
-		PrintError("Pilihan tidak valid, silakan coba lagi.")
-		MenuRute()
-	}
-}
-
-func tableRute(Title string) {
-	var mapped []map[string]string
-	for _, dt := range model.ListRute {
-		mapped = append(mapped, map[string]string{
-			"Kode":          dt.Kode,
-			"Harga":         strconv.Itoa(dt.Harga),
-			"Kapasitas":     strconv.Itoa(dt.Kapasitas),
-			"Gerbong":       strconv.Itoa(dt.Gerbong),
-			"Keberangkatan": dt.Keberangkatan.Format("2006-01-02 15:04"),
-			"Kedatangan":    dt.Kedatangan.Format("2006-01-02 15:04"),
-			"Kereta":        dt.Kereta.Nama,
-			"StasiunAwal":   dt.StasiunAwal.Nama,
-			"StasiunTujuan": dt.StasiunTujuan.Nama,
-		})
+		PrintError("Pilihan tidak valid")
+		goto Step1
 	}
 
-	PrintTable(
-		[]string{"Kode", "Harga", "Kapasitas", "Gerbong", "Keberangkatan", "Kedatangan", "Kereta", "StasiunAwal", "StasiunTujuan"},
-		mapped,
-		[]string{"Kode", "Harga", "Kapasitas", "Gerbong", "Keberangkatan", "Kedatangan", "Kereta", "StasiunAwal", "StasiunTujuan"},
-		4,
-		Title,
-	)
 }
 
-func TampilkanRute() {
+func DetailRute(Rute model.Rute) {
 
-	var searchOn, sortOn, sortType string
-
-	stop := false
+	var Select string
 	reader := bufio.NewReader(os.Stdin)
 
-	for !stop {
-		var menu string
-		var mapped []map[string]string
-		Data := model.ListRute
+	// PrintHead("Detail Rute Kereta Api")
+	fmt.Println(AlignTeksCenter("Detail Rute Kereta Api", 60))
 
-		switch {
-		case sortOn == "Kode" && sortType == "asc":
-			Data = InsertionSort(Data, func(a, b model.Rute) bool { return a.Kode < b.Kode })
-		case sortOn == "Kode" && sortType == "desc":
-			Data = InsertionSort(Data, func(a, b model.Rute) bool { return a.Kode > b.Kode })
-		case sortOn == "Harga" && sortType == "asc":
-			Data = InsertionSort(Data, func(a, b model.Rute) bool { return a.Harga < b.Harga })
-		case sortOn == "Harga" && sortType == "desc":
-			Data = InsertionSort(Data, func(a, b model.Rute) bool { return a.Harga > b.Harga })
-		case sortOn == "Kapasitas" && sortType == "asc":
-			Data = InsertionSort(Data, func(a, b model.Rute) bool { return a.Kapasitas < b.Kapasitas })
-		case sortOn == "Kapasitas" && sortType == "desc":
-			Data = InsertionSort(Data, func(a, b model.Rute) bool { return a.Kapasitas > b.Kapasitas })
-		case sortOn == "Gerbong" && sortType == "asc":
-			Data = InsertionSort(Data, func(a, b model.Rute) bool { return a.Gerbong < b.Gerbong })
-		case sortOn == "Gerbong" && sortType == "desc":
-			Data = InsertionSort(Data, func(a, b model.Rute) bool { return a.Gerbong > b.Gerbong })
-		case sortOn == "Keberangkatan" && sortType == "asc":
-			Data = InsertionSort(Data, func(a, b model.Rute) bool { return a.Keberangkatan.Before(b.Keberangkatan) })
-		case sortOn == "Keberangkatan" && sortType == "desc":
-			Data = InsertionSort(Data, func(a, b model.Rute) bool { return a.Keberangkatan.After(b.Keberangkatan) })
-		case sortOn == "Kedatangan" && sortType == "asc":
-			Data = InsertionSort(Data, func(a, b model.Rute) bool { return a.Kedatangan.Before(b.Kedatangan) })
-		case sortOn == "Kedatangan" && sortType == "desc":
-			Data = InsertionSort(Data, func(a, b model.Rute) bool { return a.Kedatangan.After(b.Kedatangan) })
+	Divider("-")
+	fmt.Println("Kode Rute: ", Rute.Kode)
+	fmt.Println("Nama Rute: ", Rute.Nama)
+	fmt.Println("Harga: ", RupiahFormat(Rute.Harga))
+	fmt.Println("Stasiun Awal: ", Rute.StasiunAwal.Nama)
+	fmt.Println("Stasiun Akhir: ", Rute.StasiunAkhir.Nama)
+	Divider("-")
+	fmt.Println("Rute Berhenti: ")
+	for index, stasiun := range Rute.RuteBerhenti {
+		if Rute.HargaTetap {
+			fmt.Printf("%d. %s - %s - %s (%s-%s)\n", index+1, stasiun.StasiunAwal.Nama, stasiun.StasiunAkhir.Nama, RupiahFormat(Rute.Harga), stasiun.Berangkat.Format("15:04"), stasiun.Tiba.Format("15:04"))
+		} else {
+			fmt.Printf("%d. %s - %s - %s (%s-%s)\n", index+1, stasiun.StasiunAwal.Nama, stasiun.StasiunAkhir.Nama, RupiahFormat(Rute.Harga*(index+1)), stasiun.Berangkat.Format("15:04"), stasiun.Tiba.Format("15:04"))
 		}
+	}
+	Divider("-")
 
-		for _, dt := range Data {
-			if searchOn == "" || strings.Contains(strings.ToLower(fmt.Sprintf("%s %s %s %s %s %s",
-				dt.Kode,
-				dt.Kereta.Nama,
-				dt.StasiunAwal.Nama,
-				dt.StasiunTujuan.Nama,
-				dt.Kedatangan.Format("2006-01-02 15:04"),
-				dt.Keberangkatan.Format("2006-01-02 15:04"),
-			)), strings.ToLower(searchOn)) {
-				mapped = append(mapped, map[string]string{
-					"Kode":          dt.Kode,
-					"Harga":         strconv.Itoa(dt.Harga),
-					"Kapasitas":     strconv.Itoa(dt.Kapasitas),
-					"Gerbong":       strconv.Itoa(dt.Gerbong),
-					"Keberangkatan": dt.Keberangkatan.Format("2006-01-02 15:04"),
-					"Kedatangan":    dt.Kedatangan.Format("2006-01-02 15:04"),
-					"Kereta":        dt.Kereta.Nama,
-					"StasiunAwal":   dt.StasiunAwal.Nama,
-					"StasiunTujuan": dt.StasiunTujuan.Nama,
-				})
-			}
-		}
+	fmt.Println(ColorText("[1] Edit Rute", 90, 49, false))
+	fmt.Println(ColorText("[2] Hapus Rute", 90, 49, false))
+	fmt.Println(ColorText("[0] Kembali", 90, 49, false))
 
-		Title := "Data Kereta"
-		if searchOn != "" {
-			Title = fmt.Sprintf("Hasil Pencarian Data Kereta : %s", searchOn)
-		}
-
-		PrintTable(
-			[]string{"Kode", "Harga", "Kapasitas", "Gerbong", "Keberangkatan", "Kedatangan", "Kereta", "StasiunAwal", "StasiunTujuan"},
-			mapped,
-			[]string{"Kode", "Harga", "Kapasitas", "Gerbong", "Keberangkatan", "Kedatangan", "Kereta", "StasiunAwal", "StasiunTujuan"},
-			4,
-			Title,
-		)
-
-		fmt.Println(ColorText("[1] Pencarian", 90, 49, false))
-		fmt.Println(ColorText("[2] Tampilkan Seluruh Data", 90, 49, false))
-		fmt.Println(ColorText("[3] Sorting Data", 90, 49, false))
-		fmt.Println(ColorText("[4] Kembali Ke Menu Stasiun", 90, 49, false))
-
-		Pembatas("-")
-
-		fmt.Print("Masukan nomor menu : ")
-		_, err := fmt.Scan(&menu)
-		if err != nil || !isNumeric(menu) {
-			ClearScreen()
-			PrintError("Pilihan tidak valid, silakan coba lagi.")
-		}
-
-		switch menu {
-		case "1":
-			fmt.Print("Masukan keyword pencarian : ")
-			search, _ := reader.ReadString('\n')
-			searchOn = strings.TrimSpace(search)
-			ClearScreen()
-		case "2":
-			searchOn = ""
-			sortOn = ""
-			sortType = ""
-			ClearScreen()
-		case "3":
-			fmt.Print("Pilih kolom untuk sort : ")
-			fmt.Scan(&sortOn)
-			fmt.Print("Pilih jenis sort (asc/desc) : ")
-			fmt.Scan(&sortType)
-			ClearScreen()
-		case "4":
-			stop = true
-			ClearScreen()
-			MenuKereta()
-		default:
-			ClearScreen()
-			PrintError("Pilihan tidak valid, silakan coba lagi.")
-		}
-
+	Divider("-")
+Step1:
+	fmt.Print("Pilih menu: ")
+	Select, err := reader.ReadString('\n')
+	Select = strings.TrimSpace(Select)
+	if err != nil {
+		PrintError("Terjadi kesalahan")
+		goto Step1
+	}
+	if Select == "" && !IsNumeric(Select) {
+		PrintError("Pilihan tidak boleh kosong & harus berupa angka")
+		goto Step1
 	}
 
+	// Step2:
+	switch Select {
+	case "1":
+		ClearScreen()
+		EditRute(Rute)
+	case "2":
+		DeleteRute(Rute)
+	case "0":
+		ClearScreen()
+		RuteController()
+	default:
+		PrintError("Pilihan tidak valid")
+		goto Step1
+	}
 }
 
 func TambahRute() {
-	PrintJudul("Tambah Rute Perjalanan")
-
 	reader := bufio.NewReader(os.Stdin)
 
-StepHarga:
-	fmt.Print("Masukkan Harga: ")
-	hargaInput, _ := reader.ReadString('\n')
-	hargaInput = strings.TrimSpace(hargaInput)
-	harga, err := strconv.Atoi(hargaInput)
+	PrintHead("Tambah Data Rute")
+
+Step1:
+	fmt.Print("Masukan Kode Rute: ")
+	Kode, err := reader.ReadString('\n')
+	Kode = strings.TrimSpace(Kode)
+
 	if err != nil {
-		PrintError("Harga harus berupa angka.")
-		goto StepHarga
+		PrintError("Terjadi kesalahan")
+		goto Step1
 	}
 
-StepKapasitas:
-	fmt.Print("Masukkan Kapasitas: ")
-	kapasitasInput, _ := reader.ReadString('\n')
-	kapasitasInput = strings.TrimSpace(kapasitasInput)
-	kapasitas, err := strconv.Atoi(kapasitasInput)
+	if Kode == "" {
+		PrintError("Kode Rute tidak boleh kosong")
+		goto Step1
+	}
+
+	//check unique
+	_, HaveKode := FindOne(model.RuteList, model.Rute{Kode: Kode}, func(a, b model.Rute) int {
+		if a.Kode < b.Kode {
+			return -1
+		} else if a.Kode > b.Kode {
+			return 1
+		}
+		return 0
+	})
+
+	if HaveKode {
+		PrintError("Kode Rute sudah ada")
+		goto Step1
+	}
+
+Step2:
+	fmt.Print("Masukan Nama Rute: ")
+	Nama, err := reader.ReadString('\n')
+	Nama = strings.TrimSpace(Nama)
 	if err != nil {
-		PrintError("Kapasitas harus berupa angka.")
-		goto StepKapasitas
+		PrintError("Terjadi kesalahan")
+		goto Step2
 	}
-
-StepGerbong:
-	fmt.Print("Masukkan Jumlah Gerbong: ")
-	gerbongInput, _ := reader.ReadString('\n')
-	gerbongInput = strings.TrimSpace(gerbongInput)
-	gerbong, err := strconv.Atoi(gerbongInput)
+	if Nama == "" {
+		PrintError("Nama Rute tidak boleh kosong")
+		goto Step2
+	}
+Step3:
+	fmt.Print("Masukan Harga Rute: ")
+	Harga, err := reader.ReadString('\n')
+	Harga = strings.TrimSpace(Harga)
 	if err != nil {
-		PrintError("Jumlah gerbong harus berupa angka.")
-		goto StepGerbong
+		PrintError("Terjadi kesalahan")
+		goto Step3
 	}
-
-StepKeberangkatan:
-	fmt.Print("Masukkan Waktu Keberangkatan (YYYY-MM-DD HH:MM): ")
-	keberangkatanInput, _ := reader.ReadString('\n')
-	keberangkatanInput = strings.TrimSpace(keberangkatanInput)
-	keberangkatan, err := time.Parse("2006-01-02 15:04", keberangkatanInput)
+	if Harga == "" {
+		PrintError("Harga Rute tidak boleh kosong")
+		goto Step3
+	}
+	HargaInt, err := strconv.Atoi(Harga)
 	if err != nil {
-		PrintError("Format tanggal tidak valid.")
-		goto StepKeberangkatan
+		PrintError("Harga Rute harus berupa angka")
+		goto Step3
 	}
-
-StepKedatangan:
-	fmt.Print("Masukkan Waktu Kedatangan (YYYY-MM-DD HH:MM): ")
-	kedatanganInput, _ := reader.ReadString('\n')
-	kedatanganInput = strings.TrimSpace(kedatanganInput)
-	kedatangan, err := time.Parse("2006-01-02 15:04", kedatanganInput)
+Step4:
+	HargaTetapBool := false
+	fmt.Print("Masukan Harga Tetap (y/n): ")
+	HargaTetap, err := reader.ReadString('\n')
+	HargaTetap = strings.TrimSpace(HargaTetap)
 	if err != nil {
-		PrintError("Format tanggal tidak valid.")
-		goto StepKedatangan
+		PrintError("Terjadi kesalahan")
+		goto Step4
 	}
-
-	fmt.Println("Pilih Kereta:")
-	for i, k := range model.ListKereta {
-		fmt.Printf("[%d] %s (%s)\n", i, k.Nama, k.Kelas)
+	if HargaTetap == "" {
+		PrintError("Harga Tetap tidak boleh kosong")
+		goto Step4
 	}
-StepKereta:
-	fmt.Print("Masukkan nomor kereta: ")
-	keretaInput, _ := reader.ReadString('\n')
-	keretaInput = strings.TrimSpace(keretaInput)
-	idxKereta, err := strconv.Atoi(keretaInput)
-	if err != nil || idxKereta < 0 || idxKereta >= len(model.ListKereta) {
-		PrintError("Kereta tidak valid.")
-		goto StepKereta
+	if HargaTetap != "y" && HargaTetap != "n" {
+		PrintError("Harga Tetap harus berupa y/n")
+		goto Step4
 	}
-
-	fmt.Println("Pilih Stasiun Awal:")
-	for i, s := range model.ListStasiun {
-		fmt.Printf("[%d] %s (%s)\n", i, s.Nama, s.Kota)
+	if HargaTetap == "y" {
+		HargaTetapBool = true
+	} else {
+		HargaTetapBool = false
 	}
-StepStAwal:
-	fmt.Print("Masukkan nomor stasiun awal: ")
-	stAwalInput, _ := reader.ReadString('\n')
-	stAwalInput = strings.TrimSpace(stAwalInput)
-	idxStAwal, err := strconv.Atoi(stAwalInput)
-	if err != nil || idxStAwal < 0 || idxStAwal >= len(model.ListStasiun) {
-		PrintError("Stasiun awal tidak valid.")
-		goto StepStAwal
-	}
-
-	fmt.Println("Pilih Stasiun Tujuan:")
-	for i, s := range model.ListStasiun {
-		fmt.Printf("[%d] %s (%s)\n", i, s.Nama, s.Kota)
-	}
-StepStTujuan:
-	fmt.Print("Masukkan nomor stasiun tujuan: ")
-	stTujuanInput, _ := reader.ReadString('\n')
-	stTujuanInput = strings.TrimSpace(stTujuanInput)
-	idxStTujuan, err := strconv.Atoi(stTujuanInput)
-	if err != nil || idxStTujuan < 0 || idxStTujuan >= len(model.ListStasiun) || idxStTujuan == idxStAwal {
-		PrintError("Stasiun tujuan tidak valid atau sama dengan stasiun awal.")
-		goto StepStTujuan
-	}
-
-	data := model.Rute{
-		Harga:         harga,
-		Kapasitas:     kapasitas,
-		Gerbong:       gerbong,
-		Keberangkatan: keberangkatan,
-		Kedatangan:    kedatangan,
-		Kereta:        model.ListKereta[idxKereta],
-		StasiunAwal:   model.ListStasiun[idxStAwal],
-		StasiunTujuan: model.ListStasiun[idxStTujuan],
-	}
-
-	model.ListRute = append(model.ListRute, data)
-	fmt.Println(ColorText("Data Rute berhasil ditambahkan.", 30, 42, false))
-	MenuRute()
-}
-
-func EditRute() {
-	var kodeRute string
-	tableRute("Edit Rute Perjalanan")
-pilihan:
-	fmt.Print("Pilih kode rute yang ingin di edit : ")
-	_, err := fmt.Scan(&kodeRute)
+Step5:
+	fmt.Print("Masukan Jumlah Gerbong: ")
+	Gerbong, err := reader.ReadString('\n')
+	Gerbong = strings.TrimSpace(Gerbong)
 	if err != nil {
-		PrintError("Input tidak valid")
-		goto pilihan
+		PrintError("Terjadi kesalahan")
+		goto Step5
+	}
+	if Gerbong == "" {
+		PrintError("Jumlah Gerbong tidak boleh kosong")
+		goto Step5
 	}
 
-	index := FindIndexByKode(model.ListRute, kodeRute)
-	if index == -1 {
-		PrintError("Kode rute tidak tersedia")
-		goto pilihan
+	if !IsNumeric(Gerbong) {
+		PrintError("Jumlah Gerbong harus berupa angka")
+		goto Step5
 	}
 
-	Pembatas("-")
-	old := model.ListRute[index]
-	reader := bufio.NewReader(os.Stdin)
-
-	fmt.Printf("Masukkan Harga [%d]: ", old.Harga)
-	hargaInput, _ := reader.ReadString('\n')
-	hargaInput = strings.TrimSpace(hargaInput)
-	harga := old.Harga
-	if hargaInput != "" {
-		if val, err := strconv.Atoi(hargaInput); err == nil {
-			harga = val
-		} else {
-			PrintError("Harga tidak valid, gunakan nilai sebelumnya.")
-		}
-	}
-
-	fmt.Printf("Masukkan Kapasitas [%d]: ", old.Kapasitas)
-	kapasitasInput, _ := reader.ReadString('\n')
-	kapasitasInput = strings.TrimSpace(kapasitasInput)
-	kapasitas := old.Kapasitas
-	if kapasitasInput != "" {
-		if val, err := strconv.Atoi(kapasitasInput); err == nil {
-			kapasitas = val
-		} else {
-			PrintError("Kapasitas tidak valid, gunakan nilai sebelumnya.")
-		}
-	}
-
-	fmt.Printf("Masukkan Jumlah Gerbong [%d]: ", old.Gerbong)
-	gerbongInput, _ := reader.ReadString('\n')
-	gerbongInput = strings.TrimSpace(gerbongInput)
-	gerbong := old.Gerbong
-	if gerbongInput != "" {
-		if val, err := strconv.Atoi(gerbongInput); err == nil {
-			gerbong = val
-		} else {
-			PrintError("Gerbong tidak valid, gunakan nilai sebelumnya.")
-		}
-	}
-
-	fmt.Printf("Masukkan Waktu Keberangkatan [%s]: ", old.Keberangkatan.Format("2006-01-02 15:04"))
-	keberangkatanInput, _ := reader.ReadString('\n')
-	keberangkatanInput = strings.TrimSpace(keberangkatanInput)
-	keberangkatan := old.Keberangkatan
-	if keberangkatanInput != "" {
-		if val, err := time.Parse("2006-01-02 15:04", keberangkatanInput); err == nil {
-			keberangkatan = val
-		} else {
-			PrintError("Format tanggal tidak valid, gunakan nilai sebelumnya.")
-		}
-	}
-
-	fmt.Printf("Masukkan Waktu Kedatangan [%s]: ", old.Kedatangan.Format("2006-01-02 15:04"))
-	kedatanganInput, _ := reader.ReadString('\n')
-	kedatanganInput = strings.TrimSpace(kedatanganInput)
-	kedatangan := old.Kedatangan
-	if kedatanganInput != "" {
-		if val, err := time.Parse("2006-01-02 15:04", kedatanganInput); err == nil {
-			kedatangan = val
-		} else {
-			PrintError("Format tanggal tidak valid, gunakan nilai sebelumnya.")
-		}
-	}
-
-	fmt.Printf("Masukkan nomor kereta [%s]:\n", old.Kereta.Nama)
-	for i, k := range model.ListKereta {
-		fmt.Printf("[%d] %s (%s)\n", i, k.Nama, k.Kelas)
-	}
-	fmt.Print("Pilih kereta (enter untuk skip): ")
-	keretaInput, _ := reader.ReadString('\n')
-	keretaInput = strings.TrimSpace(keretaInput)
-	kereta := old.Kereta
-	if keretaInput != "" {
-		if idx, err := strconv.Atoi(keretaInput); err == nil && idx >= 0 && idx < len(model.ListKereta) {
-			kereta = model.ListKereta[idx]
-		} else {
-			PrintError("Kereta tidak valid, gunakan nilai sebelumnya.")
-		}
-	}
-
-	fmt.Printf("Masukkan nomor stasiun awal [%s]:\n", old.StasiunAwal.Nama)
-	for i, s := range model.ListStasiun {
-		fmt.Printf("[%d] %s (%s)\n", i, s.Nama, s.Kota)
-	}
-	fmt.Print("Pilih stasiun awal (enter untuk skip): ")
-	stAwalInput, _ := reader.ReadString('\n')
-	stAwalInput = strings.TrimSpace(stAwalInput)
-	stAwal := old.StasiunAwal
-	if stAwalInput != "" {
-		if idx, err := strconv.Atoi(stAwalInput); err == nil && idx >= 0 && idx < len(model.ListStasiun) {
-			stAwal = model.ListStasiun[idx]
-		} else {
-			PrintError("Stasiun awal tidak valid, gunakan nilai sebelumnya.")
-		}
-	}
-
-	fmt.Printf("Masukkan nomor stasiun tujuan [%s]:\n", old.StasiunTujuan.Nama)
-	for i, s := range model.ListStasiun {
-		fmt.Printf("[%d] %s (%s)\n", i, s.Nama, s.Kota)
-	}
-	fmt.Print("Pilih stasiun tujuan (enter untuk skip): ")
-	stTujuanInput, _ := reader.ReadString('\n')
-	stTujuanInput = strings.TrimSpace(stTujuanInput)
-	stTujuan := old.StasiunTujuan
-	if stTujuanInput != "" {
-		if idx, err := strconv.Atoi(stTujuanInput); err == nil && idx >= 0 && idx < len(model.ListStasiun) && model.ListStasiun[idx].Nama != stAwal.Nama {
-			stTujuan = model.ListStasiun[idx]
-		} else {
-			PrintError("Stasiun tujuan tidak valid atau sama dengan stasiun awal, gunakan nilai sebelumnya.")
-		}
-	}
-
-	model.ListRute[index] = model.Rute{
-		Kode:          old.Kode,
-		Harga:         harga,
-		Kapasitas:     kapasitas,
-		Gerbong:       gerbong,
-		Keberangkatan: keberangkatan,
-		Kedatangan:    kedatangan,
-		Kereta:        kereta,
-		StasiunAwal:   stAwal,
-		StasiunTujuan: stTujuan,
-	}
-	fmt.Println(ColorText("Data Rute berhasil diubah.", 30, 42, false))
-	MenuRute()
-
-}
-
-func HapusRute() {
-	var kodeRute string
-	tableRute("Hapus Rute Perjalanan")
-pilihan:
-	fmt.Print("Pilih kode rute yang ingin dihapus : ")
-	_, err := fmt.Scan(&kodeRute)
+	GerbongInt, err := strconv.Atoi(Gerbong)
 	if err != nil {
-		PrintError("Input tidak valid")
-		goto pilihan
+		PrintError("Jumlah Gerbong harus berupa angka")
+		goto Step5
+	}
+	Divider("-")
+	for _, kereta := range model.ListKereta {
+		fmt.Printf("[%d] %s\n", kereta.Kode, kereta.Nama)
+	}
+Step6:
+	fmt.Print("Masukan Kode Kereta: ")
+	KodeKereta, err := reader.ReadString('\n')
+	KodeKereta = strings.TrimSpace(KodeKereta)
+	if err != nil {
+		PrintError("Terjadi kesalahan")
+		goto Step6
+	}
+	if KodeKereta == "" {
+		PrintError("Kode Kereta tidak boleh kosong")
+		goto Step6
 	}
 
-	index := FindIndexByKode(model.ListRute, kodeRute)
-	if index == -1 {
-		PrintError("Kode rute tidak tersedia")
-		goto pilihan
+	KodeKeretaInt, err := strconv.Atoi(KodeKereta)
+	if err != nil {
+		PrintError("Kode Kereta harus berupa angka")
+		goto Step6
 	}
 
-	model.ListRute = append(model.ListRute[:index], model.ListRute[index+1:]...)
+	var Kereta model.Kereta
+	var Have bool
+	Kereta, Have = FindOne(model.ListKereta, model.Kereta{Kode: KodeKeretaInt}, func(a, b model.Kereta) int {
+		if a.Kode < b.Kode {
+			return -1
+		} else if a.Kode > b.Kode {
+			return 1
+		}
+		return 0
+	})
+	if !Have {
+		PrintError("Kode Kereta tidak ditemukan")
+		goto Step6
+	}
+	for _, stasiun := range model.ListStasiun {
+		fmt.Printf("[%s] %s\n", stasiun.IDStasiun, stasiun.Nama)
+	}
+Step7:
+	fmt.Print("Masukan Kode Stasiun Awal: ")
+	KodeStasiunAwal, err := reader.ReadString('\n')
+	KodeStasiunAwal = strings.TrimSpace(KodeStasiunAwal)
+	if err != nil {
+		PrintError("Terjadi kesalahan")
+		goto Step7
+	}
+	if KodeStasiunAwal == "" {
+		PrintError("Kode Stasiun Awal tidak boleh kosong")
+		goto Step7
+	}
+	var StasiunAwal model.Stasiun
+	StasiunAwal, Have = FindOne(model.ListStasiun, model.Stasiun{IDStasiun: KodeStasiunAwal}, func(a, b model.Stasiun) int {
+		if a.IDStasiun < b.IDStasiun {
+			return -1
+		} else if a.IDStasiun > b.IDStasiun {
+			return 1
+		}
+		return 0
+	})
+
+	if !Have {
+		PrintError("Kode Stasiun Awal tidak ditemukan")
+		goto Step7
+	}
+Step8:
+	fmt.Print("Masukan Kode Stasiun Akhir: ")
+	KodeStasiunAkhir, err := reader.ReadString('\n')
+	KodeStasiunAkhir = strings.TrimSpace(KodeStasiunAkhir)
+	if err != nil {
+		PrintError("Terjadi kesalahan")
+		goto Step8
+	}
+	if KodeStasiunAkhir == "" {
+		PrintError("Kode Stasiun Akhir tidak boleh kosong")
+		goto Step8
+	}
+	var StasiunAkhir model.Stasiun
+	StasiunAkhir, Have = FindOne(model.ListStasiun, model.Stasiun{IDStasiun: KodeStasiunAkhir}, func(a, b model.Stasiun) int {
+		if a.IDStasiun < b.IDStasiun {
+			return -1
+		} else if a.IDStasiun > b.IDStasiun {
+			return 1
+		}
+		return 0
+	})
+	if !Have {
+		PrintError("Kode Stasiun Akhir tidak ditemukan")
+		goto Step8
+	}
+	// add rute on RuteList
+	baru := model.Rute{
+		Kode:         Kode,
+		Nama:         Nama,
+		Harga:        HargaInt,
+		HargaTetap:   HargaTetapBool,
+		Gerbong:      GerbongInt,
+		Kereta:       Kereta,
+		StasiunAwal:  StasiunAwal,
+		StasiunAkhir: StasiunAkhir,
+		RuteBerhenti: []model.RuteBerhenti{},
+	}
+	model.RuteList = append(model.RuteList, baru)
 	ClearScreen()
-	fmt.Println(ColorText("Data Rute berhasil dihapus.", 30, 42, false))
-	MenuRute()
+	fmt.Println(ColorText("Rute berhasil ditambahkan.", 30, 42, false))
+	RuteController()
 }
 
+func EditRute(Rute model.Rute) {
 
-func FindIndexByKode(data []model.Rute, kode string) int {
-	for i, v := range data {
-		if v.Kode == kode {
-			return i
+	PrintHead("Edit Data Rute")
+	reader := bufio.NewReader(os.Stdin)
+
+Step1:
+	fmt.Printf("Masukan Nama Rute (%s): ", Rute.Nama)
+	Nama, err := reader.ReadString('\n')
+	Nama = strings.TrimSpace(Nama)
+	if err != nil {
+		PrintError("Terjadi kesalahan")
+		goto Step1
+	}
+
+	if Nama == "" {
+		PrintError("Nama Rute tidak boleh kosong")
+		goto Step1
+	}
+Step2:
+	fmt.Printf("Masukan Harga Rute (%d): ", Rute.Harga)
+	Harga, err := reader.ReadString('\n')
+	Harga = strings.TrimSpace(Harga)
+	if err != nil {
+		PrintError("Terjadi kesalahan")
+		goto Step2
+	}
+	if Harga == "" {
+		PrintError("Harga Rute tidak boleh kosong")
+		goto Step2
+	}
+	HargaInt, err := strconv.Atoi(Harga)
+	if err != nil {
+		PrintError("Harga Rute harus berupa angka")
+		goto Step2
+	}
+Step3:
+	HargaTetapBool := false
+	var hargaTetapStr string
+	if Rute.HargaTetap {
+		hargaTetapStr = "y"
+	} else {
+		hargaTetapStr = "n"
+	}
+	fmt.Printf("Masukan Harga Tetap (%s): ", hargaTetapStr)
+	HargaTetap, err := reader.ReadString('\n')
+	HargaTetap = strings.TrimSpace(HargaTetap)
+	if err != nil {
+		PrintError("Terjadi kesalahan")
+		goto Step3
+	}
+	if HargaTetap == "" {
+		PrintError("Harga Tetap tidak boleh kosong")
+		goto Step3
+	}
+	if HargaTetap != "y" && HargaTetap != "n" {
+		PrintError("Harga Tetap harus berupa y/n")
+		goto Step3
+	}
+	if HargaTetap == "y" {
+		HargaTetapBool = true
+	} else {
+		HargaTetapBool = false
+	}
+Step4:
+	fmt.Printf("Masukan Jumlah Gerbong (%d): ", Rute.Gerbong)
+	Gerbong, err := reader.ReadString('\n')
+	Gerbong = strings.TrimSpace(Gerbong)
+	if err != nil {
+		PrintError("Terjadi kesalahan")
+		goto Step4
+	}
+	if Gerbong == "" {
+		PrintError("Jumlah Gerbong tidak boleh kosong")
+		goto Step4
+	}
+	if !IsNumeric(Gerbong) {
+		PrintError("Jumlah Gerbong harus berupa angka")
+		goto Step4
+	}
+	GerbongInt, err := strconv.Atoi(Gerbong)
+	if err != nil {
+		PrintError("Jumlah Gerbong harus berupa angka")
+		goto Step4
+	}
+	Divider("-")
+	for _, kereta := range model.ListKereta {
+		fmt.Printf("[%d] %s\n", kereta.Kode, kereta.Nama)
+	}
+Step5:
+	fmt.Printf("Masukan Kode Kereta (%d): ", Rute.Kereta.Kode)
+	KodeKereta, err := reader.ReadString('\n')
+	KodeKereta = strings.TrimSpace(KodeKereta)
+	if err != nil {
+		PrintError("Terjadi kesalahan")
+		goto Step5
+	}
+	if KodeKereta == "" {
+		PrintError("Kode Kereta tidak boleh kosong")
+		goto Step5
+	}
+	KodeKeretaInt, err := strconv.Atoi(KodeKereta)
+	if err != nil {
+		PrintError("Kode Kereta harus berupa angka")
+		goto Step5
+	}
+	var Kereta model.Kereta
+	var Have bool
+	Kereta, Have = FindOne(model.ListKereta, model.Kereta{Kode: KodeKeretaInt}, func(a, b model.Kereta) int {
+		if a.Kode < b.Kode {
+			return -1
+		} else if a.Kode > b.Kode {
+			return 1
+		}
+		return 0
+	})
+	if !Have {
+		PrintError("Kode Kereta tidak ditemukan")
+		goto Step5
+	}
+	for _, stasiun := range model.ListStasiun {
+		fmt.Printf("[%s] %s\n", stasiun.IDStasiun, stasiun.Nama)
+	}
+Step6:
+	fmt.Printf("Masukan Kode Stasiun Awal (%s): ", Rute.StasiunAwal.IDStasiun)
+	KodeStasiunAwal, err := reader.ReadString('\n')
+	KodeStasiunAwal = strings.TrimSpace(KodeStasiunAwal)
+	if err != nil {
+		PrintError("Terjadi kesalahan")
+		goto Step6
+	}
+	if KodeStasiunAwal == "" {
+		PrintError("Kode Stasiun Awal tidak boleh kosong")
+		goto Step6
+	}
+	var StasiunAwal model.Stasiun
+	StasiunAwal, Have = FindOne(model.ListStasiun, model.Stasiun{IDStasiun: KodeStasiunAwal}, func(a, b model.Stasiun) int {
+		if a.IDStasiun < b.IDStasiun {
+			return -1
+		} else if a.IDStasiun > b.IDStasiun {
+			return 1
+		}
+		return 0
+	})
+	if !Have {
+		PrintError("Kode Stasiun Awal tidak ditemukan")
+		goto Step6
+	}
+Step7:
+	fmt.Printf("Masukan Kode Stasiun Akhir (%s): ", Rute.StasiunAkhir.IDStasiun)
+	KodeStasiunAkhir, err := reader.ReadString('\n')
+	KodeStasiunAkhir = strings.TrimSpace(KodeStasiunAkhir)
+	if err != nil {
+		PrintError("Terjadi kesalahan")
+		goto Step7
+	}
+	if KodeStasiunAkhir == "" {
+		PrintError("Kode Stasiun Akhir tidak boleh kosong")
+		goto Step7
+	}
+	var StasiunAkhir model.Stasiun
+	StasiunAkhir, Have = FindOne(model.ListStasiun, model.Stasiun{IDStasiun: KodeStasiunAkhir}, func(a, b model.Stasiun) int {
+		if a.IDStasiun < b.IDStasiun {
+			return -1
+		} else if a.IDStasiun > b.IDStasiun {
+			return 1
+		}
+		return 0
+	})
+	if !Have {
+		PrintError("Kode Stasiun Akhir tidak ditemukan")
+		goto Step7
+	}
+	// update rute on RuteList
+	for i, rute := range model.RuteList {
+		if rute.Kode == Rute.Kode {
+			model.RuteList[i].Nama = Nama
+			model.RuteList[i].Harga = HargaInt
+			model.RuteList[i].HargaTetap = HargaTetapBool
+			model.RuteList[i].Gerbong = GerbongInt
+			model.RuteList[i].Kereta = Kereta
+			model.RuteList[i].StasiunAwal = StasiunAwal
+			model.RuteList[i].StasiunAkhir = StasiunAkhir
 		}
 	}
-	return -1
+	ClearScreen()
+	fmt.Println(ColorText("Rute berhasil diubah.", 30, 42, false))
+	RuteController()
+}
+
+func DeleteRute(Rute model.Rute) {
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Apakah anda yakin ingin menghapus rute ini? (y/n): ")
+	confirm, _ := reader.ReadString('\n')
+	confirm = strings.TrimSpace(confirm)
+
+	if confirm == "y" || confirm == "Y" {
+		for i, rute := range model.RuteList {
+			if rute.Kode == Rute.Kode {
+				model.RuteList = append(model.RuteList[:i], model.RuteList[i+1:]...)
+				ClearScreen()
+				fmt.Println(ColorText("Rute berhasil dihapus.", 30, 42, false))
+				RuteController()
+				break
+			}
+		}
+	} else {
+		ClearScreen()
+		PrintError("Rute tidak dihapus")
+		DetailRute(Rute)
+	}
 }
