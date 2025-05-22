@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"laraska/model"
+	"laraska/utils"
 	"os"
 	"regexp"
 	"strings"
@@ -18,8 +19,7 @@ type AuthStruct struct {
 var AuthData AuthStruct
 
 func AuthController() {
-Step1:
-	PrintBoxWithText(60, []string{
+	utils.PrintBoxWithText(60, []string{
 		"Selamat Datang",
 		"LarasKA (Layanan Reservasi Kereta Api)",
 	})
@@ -29,24 +29,26 @@ Step1:
 	fmt.Println("[2] Daftar Pengguna Baru")
 	fmt.Println("[3] Login Sebagai Admin")
 
+	utils.Divider("-")
+
+Step1:
 	fmt.Print("Pilih menu : ")
 	_, err := fmt.Scan(&pilihan)
 
-	if err != nil || !IsNumeric(pilihan) {
-		ClearScreen()
-		PrintError(fmt.Sprintf("Pilihan %s tidak ada", pilihan))
+	if err != nil || !utils.IsNumeric(pilihan) {
+		utils.PrintMessage(fmt.Sprintf("Pilihan %s tidak ada", pilihan), "error")
 		goto Step1
 	}
 
 	switch pilihan {
 	case "2":
+		utils.ClearScreen()
 		RegisterPenumpang()
 	case "3":
-		ClearScreen()
+		utils.ClearScreen()
 		LoginForAdmin()
 	default:
-		ClearScreen()
-		PrintError(fmt.Sprintf("Pilihan %s tidak ada", pilihan))
+		utils.PrintMessage(fmt.Sprintf("Pilihan %s tidak ada", pilihan), "error")
 		goto Step1
 	}
 }
@@ -54,7 +56,7 @@ Step1:
 func LoginForAdmin() {
 	var username, password string
 
-	PrintBoxWithText(60, []string{
+	utils.PrintBoxWithText(60, []string{
 		"Login Sebagai Admin",
 		"LarasKA (Layanan Reservasi Kereta Api)",
 	})
@@ -74,23 +76,22 @@ Form:
 				admin:    admin,
 			}
 			isNull = false
-			ClearScreen()
+			utils.ClearScreen()
 			MenuAwalAdmin()
 			return
 		}
 	}
 
 	if isNull == true {
-		PrintError("Username dan password salah")
-		Divider("-")
+		utils.PrintMessage("Username dan password salah", "error")
+		utils.Divider("-")
 		goto Form
 	}
 }
 
 func RegisterPenumpang() {
 	reader := bufio.NewReader(os.Stdin)
-	ClearScreen()
-	PrintBoxWithText(60, []string{
+	utils.PrintBoxWithText(60, []string{
 		"Daftar Pengguna",
 		"LarasKA (Layanan Reservasi Kereta Api)",
 	})
@@ -100,7 +101,7 @@ FormNama:
 	nama, err := reader.ReadString('\n')
 	nama = strings.TrimSpace(nama)
 	if nama == "" || err != nil {
-		PrintError("Nama wajib di isi")
+		utils.PrintMessage("Nama wajib di isi", "error")
 		goto FormNama
 	}
 FormNIK:
@@ -108,17 +109,17 @@ FormNIK:
 	nik, err := reader.ReadString('\n')
 	nik = strings.TrimSpace(nik)
 	if nik == "" || err != nil {
-		PrintError("NIK wajib di isi")
+		utils.PrintMessage("NIK wajib di isi", "error")
 		goto FormNIK
 	}
 
 	var nikRegex = regexp.MustCompile(`^\d{16}$`)
 	if !nikRegex.MatchString(nik) {
-		PrintError("Format NIK salah")
+		utils.PrintMessage("Format NIK salah", "error")
 		goto FormNIK
 	}
 
-	dataNIK := BinaryFindMany(model.ListUser, model.User{NIK: nik}, func(a, b model.User) int {
+	dataNIK := utils.BinaryFindMany(model.ListUser, model.User{NIK: nik}, func(a, b model.User) int {
 		if a.NIK < b.NIK {
 			return -1
 		} else if a.NIK > b.NIK {
@@ -128,7 +129,7 @@ FormNIK:
 	})
 
 	if len(dataNIK) > 0 {
-		PrintError("NIK sudah digunakan")
+		utils.PrintMessage("NIK sudah digunakan", "error")
 		goto FormNIK
 	}
 FormKelamin:
@@ -136,12 +137,12 @@ FormKelamin:
 	jenisKelamin, err := reader.ReadString('\n')
 	jenisKelamin = strings.TrimSpace(jenisKelamin)
 	if jenisKelamin == "" || err != nil {
-		PrintError("Wajib dipilih jenis kelamin")
+		utils.PrintMessage("Wajib dipilih jenis kelamin", "error")
 		goto FormKelamin
 	}
 
 	if jenisKelamin != "l" && jenisKelamin != "p" {
-		PrintError("Pilihan hanya l (Laki-Laki) dan p (Perempuan)")
+		utils.PrintMessage("Pilihan hanya l (Laki-Laki) dan p (Perempuan)", "error")
 		goto FormKelamin
 	}
 
@@ -150,7 +151,7 @@ FormAlamat:
 	alamat, err := reader.ReadString('\n')
 	alamat = strings.TrimSpace(alamat)
 	if alamat == "" || err != nil {
-		PrintError("Alamat Wajib di isi")
+		utils.PrintMessage("Alamat Wajib di isi", "error")
 		goto FormAlamat
 	}
 
@@ -159,12 +160,12 @@ FormTglLahir:
 	TglLahir, err := reader.ReadString('\n')
 	TglLahir = strings.TrimSpace(TglLahir)
 	if TglLahir == "" || err != nil {
-		PrintError("Alamat Wajib di isi")
+		utils.PrintMessage("Alamat Wajib di isi", "error")
 		goto FormTglLahir
 	}
 
 	if !regexp.MustCompile(`^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/[0-9]{4}$`).MatchString(TglLahir) {
-		PrintError("Format tanggal lahir salah")
+		utils.PrintMessage("Format tanggal lahir salah", "error")
 		goto FormTglLahir
 	}
 
@@ -173,7 +174,7 @@ FormPekerjaan:
 	pekerjaan, err := reader.ReadString('\n')
 	pekerjaan = strings.TrimSpace(pekerjaan)
 	if pekerjaan == "" || err != nil {
-		PrintError("Pekerjaan wajib diisi")
+		utils.PrintMessage("Pekerjaan wajib diisi", "error")
 		goto FormPekerjaan
 	}
 
@@ -182,10 +183,10 @@ FormNoHp:
 	noHp, err := reader.ReadString('\n')
 	noHp = strings.TrimSpace(noHp)
 	if !regexp.MustCompile(`^08[0-9]{8,11}$`).MatchString(noHp) {
-		PrintError("Format No HP salah")
+		utils.PrintMessage("Format No HP salah", "error")
 		goto FormNoHp
 	}
-	dataNoHp := BinaryFindMany(model.ListUser, model.User{NoHP: noHp}, func(a, b model.User) int {
+	dataNoHp := utils.BinaryFindMany(model.ListUser, model.User{NoHP: noHp}, func(a, b model.User) int {
 		if a.NoHP < b.NoHP {
 			return -1
 		} else if a.NoHP > b.NoHP {
@@ -194,7 +195,7 @@ FormNoHp:
 		return 0
 	})
 	if len(dataNoHp) > 0 {
-		PrintError("No HP sudah digunakan")
+		utils.PrintMessage("No HP sudah digunakan", "error")
 		goto FormNoHp
 	}
 
@@ -203,10 +204,10 @@ FormEmail:
 	email, err := reader.ReadString('\n')
 	email = strings.TrimSpace(email)
 	if !regexp.MustCompile(`^[\w.+-]+@[\w-]+\.[\w.-]+$`).MatchString(email) {
-		PrintError("Format Email salah")
+		utils.PrintMessage("Format Email salah", "error")
 		goto FormEmail
 	}
-	dataEmail := BinaryFindMany(model.ListUser, model.User{Email: email}, func(a, b model.User) int {
+	dataEmail := utils.BinaryFindMany(model.ListUser, model.User{Email: email}, func(a, b model.User) int {
 		if a.Email < b.Email {
 			return -1
 		} else if a.Email > b.Email {
@@ -215,7 +216,7 @@ FormEmail:
 		return 0
 	})
 	if len(dataEmail) > 0 {
-		PrintError("Email sudah digunakan")
+		utils.PrintMessage("Email sudah digunakan", "error")
 		goto FormEmail
 	}
 
@@ -224,7 +225,7 @@ FormPassword:
 	password, err := reader.ReadString('\n')
 	password = strings.TrimSpace(password)
 	if len(password) < 6 {
-		PrintError("Password minimal 6 karakter")
+		utils.PrintMessage("Password minimal 6 karakter", "error")
 		goto FormPassword
 	}
 
@@ -240,7 +241,7 @@ FormPassword:
 		Password:     password,
 	}
 	model.ListUser = append(model.ListUser, User)
-	ClearScreen()
-	fmt.Println(ColorText("User Berhasil Terdaftar", 30, 42, false))
+	utils.ClearScreen()
+	fmt.Println(utils.ColorText("User Berhasil Terdaftar", 30, 42, false))
 	AuthController()
 }

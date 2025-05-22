@@ -1,20 +1,30 @@
-package controller
+package utils
 
 import (
 	"fmt"
 	"regexp"
 	"strconv"
 	"strings"
+
 	"golang.org/x/text/language"
 	"golang.org/x/text/message"
 )
 
 func ClearScreen() {
-	fmt.Print("\033[H\033[2J")
+	fmt.Print("\033[H\033[2J\033[3J")
 }
 
-func PrintError(message string) {
-	fmt.Println("\033[31m" + message + "\033[0m")
+func PrintMessage(message string, status string) {
+	switch status {
+	case "error":
+		fmt.Println(ColorText(message, 31, 49, false))
+	case "success":
+		fmt.Println(ColorText(message, 32, 49, false))
+	case "warning":
+		fmt.Println(ColorText(message, 33, 49, false))
+	default:
+		fmt.Println(message)
+	}
 }
 
 func ColorText(text string, fg, bg int, bold bool) string {
@@ -139,6 +149,5 @@ func PrintTable(col []string, data []map[string]string, rowKey []string, gap int
 
 func RupiahFormat(r int) string {
 	p := message.NewPrinter(language.Indonesian)
-	// fmt.Println(p.Sprintf("Rp%d", 1000000)) // Output: Rp1.000.000
 	return p.Sprintf("Rp %d", r)
 }

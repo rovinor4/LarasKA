@@ -1,4 +1,4 @@
-package controller
+package utils
 
 func FindMany[T any](data []T, target T, cmp func(a, b T) int) []T {
 	result := []T{}

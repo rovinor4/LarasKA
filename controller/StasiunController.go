@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"laraska/model"
+	"laraska/utils"
 	"os"
 	"strings"
 )
@@ -19,38 +20,38 @@ func MenuStasiun() {
 		"Kembali ke Menu Awal",
 	}
 
-	PrintHead("Menu Stasiun")
+	utils.PrintHead("Menu Stasiun")
 	for index, menu := range menuList {
 		fmt.Printf("[%d] %s\n", index+1, menu)
 	}
-	Divider("-")
+	utils.Divider("-")
 
 	fmt.Print("Pilih menu: ")
 	_, err := fmt.Scan(&choice)
-	if err != nil || !IsNumeric(choice) {
-		PrintError("Pilihan tidak valid, silakan coba lagi.")
+	if err != nil || !utils.IsNumeric(choice) {
+		utils.PrintMessage("Pilihan tidak valid, silakan coba lagi.","error")
 		MenuStasiun()
 		return
 	}
 
 	switch choice {
 	case "1":
-		ClearScreen()
+		utils.ClearScreen()
 		TampilkanStasiun()
 	case "2":
-		ClearScreen()
+		utils.ClearScreen()
 		TambahStasiun()
 	case "3":
-		ClearScreen()
+		utils.ClearScreen()
 		EditStasiun()
 	case "4":
-		ClearScreen()
+		utils.ClearScreen()
 		HapusStasiun()
 	case "5":
-		ClearScreen()
+		utils.ClearScreen()
 		MenuAwalAdmin()
 	default:
-		PrintError("Pilihan tidak valid, silakan coba lagi.")
+		utils.PrintMessage("Pilihan tidak valid, silakan coba lagi.","error")
 		MenuStasiun()
 	}
 
@@ -60,13 +61,13 @@ func TambahStasiun() {
 	reader := bufio.NewReader(os.Stdin)
 	var statiun model.Stasiun
 
-	PrintHead("Tambah Stasiun")
+	utils.PrintHead("Tambah Stasiun")
 	fmt.Print("Id Stasiun: ")
 	fmt.Scan(&statiun.IDStasiun)
 
 	for _, st := range model.ListStasiun {
 		if st.IDStasiun == statiun.IDStasiun {
-			PrintError("ID Stasiun sudah ada, silakan masukkan ID yang berbeda.")
+			utils.PrintMessage("ID Stasiun sudah ada, silakan masukkan ID yang berbeda.","error")
 			TambahStasiun()
 			return
 		}
@@ -75,7 +76,7 @@ func TambahStasiun() {
 	fmt.Print("Nama Stasiun: ")
 	inputName, err := reader.ReadString('\n')
 	if err != nil {
-		PrintError("Error reading input")
+		utils.PrintMessage("Error reading input","error")
 		return
 	}
 	statiun.Nama = strings.TrimSpace(inputName)
@@ -84,8 +85,8 @@ func TambahStasiun() {
 	fmt.Scan(&statiun.Kota)
 
 	model.ListStasiun = append(model.ListStasiun, statiun)
-	ClearScreen()
-	fmt.Println(ColorText("Stasiun berhasil ditambahkan.", 30, 42, false))
+	utils.ClearScreen()
+	fmt.Println(utils.ColorText("Stasiun berhasil ditambahkan.", 30, 42, false))
 	MenuStasiun()
 }
 
@@ -107,7 +108,7 @@ func TampilkanStasiun(search ...string) {
 		}
 	}
 
-	PrintTable(
+	utils.PrintTable(
 		[]string{"ID", "Nama", "Kota"},
 		mapped,
 		[]string{"IDStasiun", "Nama", "Kota"},
@@ -115,15 +116,15 @@ func TampilkanStasiun(search ...string) {
 		"Data Stasiun",
 	)
 
-	fmt.Println(ColorText("[1] Pencarian", 90, 49, false))
-	fmt.Println(ColorText("[2] Tampilkan Semua", 90, 49, false))
-	fmt.Println(ColorText("[3] Kembali Ke Menu Stasiun", 90, 49, false))
+	fmt.Println(utils.ColorText("[1] Pencarian", 90, 49, false))
+	fmt.Println(utils.ColorText("[2] Tampilkan Semua", 90, 49, false))
+	fmt.Println(utils.ColorText("[3] Kembali Ke Menu Stasiun", 90, 49, false))
 
 	fmt.Print("Pilih menu: ")
 	_, err := fmt.Scan(&choice)
 
-	if err != nil || !IsNumeric(choice) {
-		PrintError("Pilihan tidak valid, silakan coba lagi.\n")
+	if err != nil || !utils.IsNumeric(choice) {
+		utils.PrintMessage("Pilihan tidak valid, silakan coba lagi.\n","error")
 		TampilkanStasiun()
 	}
 
@@ -131,20 +132,20 @@ func TampilkanStasiun(search ...string) {
 	case "1":
 		fmt.Print("Masukkan nama stasiun yang dicari: ")
 		fmt.Scan(&searchQuery)
-		ClearScreen()
+		utils.ClearScreen()
 		TampilkanStasiun(searchQuery)
 	case "2":
-		ClearScreen()
+		utils.ClearScreen()
 		TampilkanStasiun()
 	case "3":
-		ClearScreen()
+		utils.ClearScreen()
 		MenuStasiun()
 	default:
-		PrintError("Pilihan tidak valid, silakan coba lagi.\n")
+		utils.PrintMessage("Pilihan tidak valid, silakan coba lagi.\n","error")
 		TampilkanStasiun()
 	}
 
-	ClearScreen()
+	utils.ClearScreen()
 	MenuStasiun()
 }
 
@@ -155,16 +156,16 @@ func ShowListStasiun() {
 }
 
 func HapusStasiun() {
-	PrintHead("Hapus Stasiun")
+	utils.PrintHead("Hapus Stasiun")
 	ShowListStasiun()
-	Divider("-")
+	utils.Divider("-")
 
 	var choice int
 	fmt.Print("Pilih nomor stasiun yang ingin dihapus: ")
 	fmt.Scan(&choice)
 
 	if choice < 1 || choice > len(model.ListStasiun) {
-		PrintError("Pilihan tidak valid, silakan coba lagi.")
+		utils.PrintMessage("Pilihan tidak valid, silakan coba lagi.","error")
 		HapusStasiun()
 		return
 	}
@@ -174,8 +175,8 @@ func HapusStasiun() {
 	fmt.Scan(&confirm)
 
 	if strings.ToLower(confirm) != "y" {
-		ClearScreen()
-		fmt.Println(ColorText("Penghapusan dibatalkan.", 30, 41, false))
+		utils.ClearScreen()
+		fmt.Println(utils.ColorText("Penghapusan dibatalkan.", 30, 41, false))
 		MenuStasiun()
 		return
 	}
@@ -183,23 +184,23 @@ func HapusStasiun() {
 	model.ListStasiun = append(model.ListStasiun[:choice-1], model.ListStasiun[choice:]...)
 	fmt.Println("Stasiun berhasil dihapus!")
 
-	ClearScreen()
-	fmt.Println(ColorText("Stasiun berhasil dihapus.", 30, 42, false))
+	utils.ClearScreen()
+	fmt.Println(utils.ColorText("Stasiun berhasil dihapus.", 30, 42, false))
 	MenuStasiun()
 }
 
 func EditStasiun() {
 	var pilihIndex int
 
-	PrintHead("Edit Stasiun")
+	utils.PrintHead("Edit Stasiun")
 	ShowListStasiun()
-	Divider("-")
+	utils.Divider("-")
 
 	fmt.Print("Pilih nomor stasiun yang ingin di edit: ")
 	fmt.Scan(&pilihIndex)
 
 	if pilihIndex < 1 || pilihIndex > len(model.ListStasiun) {
-		PrintError("Pilihan tidak valid, silakan coba lagi.")
+		utils.PrintMessage("Pilihan tidak valid, silakan coba lagi.","error")
 		EditStasiun()
 		return
 	}
@@ -222,7 +223,7 @@ func EditStasiun() {
 		stasiunDipilih.Nama = inputKota
 	}
 
-	ClearScreen()
-	fmt.Println(ColorText("Stasiun berhasil diperbarui.", 30, 42, false))
+	utils.ClearScreen()
+	fmt.Println(utils.ColorText("Stasiun berhasil diperbarui.", 30, 42, false))
 	MenuStasiun()
 }

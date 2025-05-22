@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"laraska/model"
+	"laraska/utils"
 	"os"
 	"strconv"
 	"strings"
@@ -19,17 +20,17 @@ func MenuKereta() {
 		"Kembali ke Menu Awal",
 	}
 
-	PrintHead("Menu Kereta")
+	utils.PrintHead("Menu Kereta")
 
 	for index, menu := range menuList {
 		fmt.Printf("[%d] %s\n", index+1, menu)
 	}
-	Divider("-")
+	utils.Divider("-")
 
 	fmt.Print("Pilih menu: ")
 	_, err := fmt.Scan(&choice)
-	if err != nil || !IsNumeric(choice) {
-		PrintError("Pilihan tidak valid, silakan coba lagi.")
+	if err != nil || !utils.IsNumeric(choice) {
+		utils.PrintMessage("Pilihan tidak valid, silakan coba lagi.", "error")
 		MenuKereta()
 		return
 	}
@@ -46,7 +47,7 @@ func MenuKereta() {
 	case choice == "5":
 		MenuAwalAdmin()
 	default:
-		PrintError("Pilihan tidak valid, silakan coba lagi.")
+		utils.PrintMessage("Pilihan tidak valid, silakan coba lagi.", "error")
 		MenuKereta()
 	}
 }
@@ -61,7 +62,7 @@ func TableKereta(Title string) {
 		})
 	}
 
-	PrintTable(
+	utils.PrintTable(
 		[]string{"Kode", "Nama", "Kelas"},
 		mapped,
 		[]string{"Kode", "Nama", "Kelas"},
@@ -74,7 +75,7 @@ func TampilkanKereta() {
 
 	var searchOn, sortOn, sortType string
 
-	ClearScreen()
+	utils.ClearScreen()
 	reader := bufio.NewReader(os.Stdin)
 Step1:
 	var menu string
@@ -83,19 +84,19 @@ Step1:
 
 	switch {
 	case sortOn == "" && sortType == "":
-		Data = InsertionSort(Data, func(a, b model.Kereta) bool { return a.Kode < b.Kode })
+		Data = utils.InsertionSort(Data, func(a, b model.Kereta) bool { return a.Kode < b.Kode })
 	case sortOn == "Kode" && sortType == "asc":
-		Data = InsertionSort(Data, func(a, b model.Kereta) bool { return a.Kode < b.Kode })
+		Data = utils.InsertionSort(Data, func(a, b model.Kereta) bool { return a.Kode < b.Kode })
 	case sortOn == "Kode" && sortType == "desc":
-		Data = InsertionSort(Data, func(a, b model.Kereta) bool { return a.Kode > b.Kode })
+		Data = utils.InsertionSort(Data, func(a, b model.Kereta) bool { return a.Kode > b.Kode })
 	case sortOn == "Nama" && sortType == "asc":
-		Data = InsertionSort(Data, func(a, b model.Kereta) bool { return strings.ToLower(a.Nama) < strings.ToLower(b.Nama) })
+		Data = utils.InsertionSort(Data, func(a, b model.Kereta) bool { return strings.ToLower(a.Nama) < strings.ToLower(b.Nama) })
 	case sortOn == "Nama" && sortType == "desc":
-		Data = InsertionSort(Data, func(a, b model.Kereta) bool { return strings.ToLower(a.Nama) > strings.ToLower(b.Nama) })
+		Data = utils.InsertionSort(Data, func(a, b model.Kereta) bool { return strings.ToLower(a.Nama) > strings.ToLower(b.Nama) })
 	case sortOn == "Kelas" && sortType == "asc":
-		Data = InsertionSort(Data, func(a, b model.Kereta) bool { return strings.ToLower(a.Kelas) < strings.ToLower(b.Kelas) })
+		Data = utils.InsertionSort(Data, func(a, b model.Kereta) bool { return strings.ToLower(a.Kelas) < strings.ToLower(b.Kelas) })
 	case sortOn == "Kelas" && sortType == "desc":
-		Data = InsertionSort(Data, func(a, b model.Kereta) bool { return strings.ToLower(a.Kelas) > strings.ToLower(b.Kelas) })
+		Data = utils.InsertionSort(Data, func(a, b model.Kereta) bool { return strings.ToLower(a.Kelas) > strings.ToLower(b.Kelas) })
 	}
 
 	for _, dt := range Data {
@@ -114,7 +115,7 @@ Step1:
 		Title = fmt.Sprintf("Hasil Pencarian Data Kereta : %s", searchOn)
 	}
 
-	PrintTable(
+	utils.PrintTable(
 		[]string{"Kode", "Nama", "Kelas"},
 		mapped,
 		[]string{"Kode", "Nama", "Kelas"},
@@ -122,18 +123,18 @@ Step1:
 		Title,
 	)
 
-	fmt.Println(ColorText("[1] Pencarian", 90, 49, false))
-	fmt.Println(ColorText("[2] Tampilkan Seluruh Data", 90, 49, false))
-	fmt.Println(ColorText("[3] Sorting Data", 90, 49, false))
-	fmt.Println(ColorText("[0] Kembali", 90, 49, false))
+	fmt.Println(utils.ColorText("[1] Pencarian", 90, 49, false))
+	fmt.Println(utils.ColorText("[2] Tampilkan Seluruh Data", 90, 49, false))
+	fmt.Println(utils.ColorText("[3] Sorting Data", 90, 49, false))
+	fmt.Println(utils.ColorText("[0] Kembali", 90, 49, false))
 
-	Divider("-")
+	utils.Divider("-")
 Step2:
 	fmt.Print("Masukan nomor menu : ")
 	_, err := fmt.Scan(&menu)
-	if err != nil || !IsNumeric(menu) {
-		ClearScreen()
-		PrintError("Pilihan tidak valid, silakan coba lagi.")
+	if err != nil || !utils.IsNumeric(menu) {
+		utils.ClearScreen()
+		utils.PrintMessage("Pilihan tidak valid, silakan coba lagi.", "error")
 	}
 
 	switch menu {
@@ -144,25 +145,25 @@ Step2:
 		searchOn = strings.TrimSpace(search)
 
 		if searchOn == "" {
-			PrintError("Pencarian Tidak Boleh Kosong")
+			utils.PrintMessage("Pencarian Tidak Boleh Kosong", "error")
 			goto Step2Search
 		}
 
-		ClearScreen()
+		utils.ClearScreen()
 		goto Step1
 
 	case "2":
 		searchOn = ""
 		sortOn = ""
 		sortType = ""
-		ClearScreen()
+		utils.ClearScreen()
 		goto Step1
 	case "3":
 	Step2Sort:
 		fmt.Print("Pilih kolom untuk sort (Kode/Nama/Kelas) : ")
 		fmt.Scan(&sortOn)
 		if sortOn != "Kode" && sortOn != "Nama" && sortOn != "Kelas" {
-			PrintError("Pastikan kamu memilih (Kode/Nama/Kelas)")
+			utils.PrintMessage("Pastikan kamu memilih (Kode/Nama/Kelas)", "error")
 			goto Step2Sort
 		}
 	Step2SortSelect:
@@ -170,17 +171,17 @@ Step2:
 		fmt.Scan(&sortType)
 
 		if sortType != "asc" && sortType != "desc" {
-			PrintError("Pastikan kamu memilih (asc/desc)")
+			utils.PrintMessage("Pastikan kamu memilih (asc/desc)", "error")
 			goto Step2SortSelect
 		}
 
-		ClearScreen()
+		utils.ClearScreen()
 		goto Step1
 	case "4":
-		ClearScreen()
+		utils.ClearScreen()
 		MenuKereta()
 	default:
-		PrintError("Pilihan tidak valid, silakan coba lagi.")
+		utils.PrintMessage("Pilihan tidak valid, silakan coba lagi.", "error")
 		goto Step2
 	}
 
@@ -189,12 +190,12 @@ Step2:
 func TambahKereta() {
 	reader := bufio.NewReader(os.Stdin)
 	var kode int
-	PrintHead("Tambah Data Kereta")
+	utils.PrintHead("Tambah Data Kereta")
 	fmt.Print("Masukan Kode Kereta: ")
 	_, err := fmt.Scan(&kode)
 
 	if err != nil {
-		PrintError("Hanya di izinakan berupa angka")
+		utils.PrintMessage("Hanya di izinakan berupa angka", "error")
 		TambahKereta()
 	}
 
@@ -206,15 +207,15 @@ func TambahKereta() {
 	kelas = strings.TrimSpace(kelas)
 
 	if nama == "" || kelas == "" {
-		PrintError("Nama kereta atau kelas tidak boleh kosong")
+		utils.PrintMessage("Nama kereta atau kelas tidak boleh kosong", "error")
 		TambahKereta()
 		return
 	}
 
 	baru := model.Kereta{Kode: kode, Nama: nama, Kelas: kelas}
 	model.ListKereta = append(model.ListKereta, baru)
-	ClearScreen()
-	fmt.Println(ColorText("Kereta berhasil ditambahkan.", 30, 42, false))
+	utils.ClearScreen()
+	fmt.Println(utils.ColorText("Kereta berhasil ditambahkan.", 30, 42, false))
 	MenuKereta()
 
 }
@@ -239,13 +240,13 @@ func EditKereta() {
 				model.ListKereta[i].Kelas = strings.TrimSpace(kelas)
 			}
 
-			ClearScreen()
-			fmt.Println(ColorText("Kereta berhasil diubah.", 30, 42, false))
+			utils.ClearScreen()
+			fmt.Println(utils.ColorText("Kereta berhasil diubah.", 30, 42, false))
 			MenuKereta()
 			return
 		}
 	}
-	PrintError("Kode kereta tidak ditemukan.")
+	utils.PrintMessage("Kode kereta tidak ditemukan.", "error")
 	MenuKereta()
 }
 
@@ -258,14 +259,14 @@ Input:
 	for i, kt := range model.ListKereta {
 		if kt.Kode == kode {
 			model.ListKereta = append(model.ListKereta[:i], model.ListKereta[i+1:]...)
-			ClearScreen()
+			utils.ClearScreen()
 			fmt.Println("Kereta berhasil dihapus.")
 			MenuKereta()
 			return
 		}
 	}
 
-	PrintError("Kode kereta tidak ditemukan.")
+	utils.PrintMessage("Kode kereta tidak ditemukan.", "error")
 	goto Input
 
 }

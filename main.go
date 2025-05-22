@@ -3,16 +3,20 @@ package main
 import (
 	"fmt"
 	"laraska/controller"
+	"laraska/utils"
 	"os"
 )
 
 func main() {
-	controller.PrintBoxWithText(60, []string{
+ 
+	utils.PrintMessage("Selamat Datang di LarasKA", "info")
+	return
+	utils.PrintBoxWithText(60, []string{
 		"LarasKA (Layanan Reservasi Kereta Api)",
 		"Telkom University Surabaya | Informatika",
 	})
 
-	controller.PrintBoxWithText(60, []string{
+	utils.PrintBoxWithText(60, []string{
 		"Kelompok 2 : ",
 		"Rovino Ramadhani (103072400031)",
 		"Rangga Dani Prasetya (103072400057)",
@@ -27,7 +31,7 @@ func main() {
 		fmt.Println("Invalid input. Please press x to run the program.")
 		os.Exit(0)
 	} else {
-		controller.ClearScreen()
+		utils.ClearScreen()
 		controller.AuthController()
 	}
 }

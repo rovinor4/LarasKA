@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"laraska/model"
+	"laraska/utils"
 	"os"
 	"strconv"
 	"strings"
@@ -18,29 +19,29 @@ func RuteController() {
 		RuteListMap = append(RuteListMap, map[string]string{
 			"Kode":         rute.Kode,
 			"Nama":         rute.Nama,
-			"Harga":        RupiahFormat(rute.Harga),
+			"Harga":        utils.RupiahFormat(rute.Harga),
 			"StasiunAwal":  rute.StasiunAwal.Nama,
 			"StasiunAkhir": rute.StasiunAkhir.Nama,
 		})
 	}
-	PrintTable([]string{"Kode", "Nama", "Harga", "Stasiun Awal", "Stasiun Akhir"}, RuteListMap, []string{"Kode", "Nama", "Harga", "StasiunAwal", "StasiunAkhir"}, 5, "Rute Kereta Api")
+	utils.PrintTable([]string{"Kode", "Nama", "Harga", "Stasiun Awal", "Stasiun Akhir"}, RuteListMap, []string{"Kode", "Nama", "Harga", "StasiunAwal", "StasiunAkhir"}, 5, "Rute Kereta Api")
 
-	fmt.Println(ColorText("[1] Lihat Detail", 90, 49, false))
-	fmt.Println(ColorText("[2] Tambah Rute", 90, 49, false))
-	fmt.Println(ColorText("[0] Kembali", 90, 49, false))
-	Divider("-")
+	fmt.Println(utils.ColorText("[1] Lihat Detail", 90, 49, false))
+	fmt.Println(utils.ColorText("[2] Tambah Rute", 90, 49, false))
+	fmt.Println(utils.ColorText("[0] Kembali", 90, 49, false))
+	utils.Divider("-")
 Step1:
 	fmt.Print("Pilih menu: ")
 	Select, err := reader.ReadString('\n')
 	Select = strings.TrimSpace(Select)
 
 	if err != nil {
-		PrintError("Terjadi kesalahan")
+		utils.PrintMessage("Terjadi kesalahan", "error")
 		goto Step1
 	}
 
-	if Select == "" && !IsNumeric(Select) {
-		PrintError("Pilihan tidak boleh kosong & harus berupa angka")
+	if Select == "" && !utils.IsNumeric(Select) {
+		utils.PrintMessage("Pilihan tidak boleh kosong & harus berupa angka", "error")
 	}
 
 Step2:
@@ -51,16 +52,16 @@ Step2:
 		Kode = strings.TrimSpace(Kode)
 
 		if err != nil {
-			PrintError("Terjadi kesalahan")
+			utils.PrintMessage("Terjadi kesalahan", "error")
 			goto Step2
 		}
 
 		if Kode == "" {
-			PrintError("Kode Rute Tidak Boleh Kosong")
+			utils.PrintMessage("Kode Rute Tidak Boleh Kosong", "error")
 			goto Step2
 		}
 
-		Data, Have := FindOne(model.RuteList, model.Rute{Kode: Kode}, func(a, b model.Rute) int {
+		Data, Have := utils.FindOne(model.RuteList, model.Rute{Kode: Kode}, func(a, b model.Rute) int {
 			if a.Kode < b.Kode {
 				return -1
 			} else if a.Kode > b.Kode {
@@ -70,16 +71,16 @@ Step2:
 		})
 
 		if !Have {
-			PrintError("Rute tidak ditemukan")
+			utils.PrintMessage("Rute tidak ditemukan", "error")
 			goto Step2
 		}
-		ClearScreen()
+		utils.ClearScreen()
 		DetailRute(Data)
 	case "2":
-		ClearScreen()
+		utils.ClearScreen()
 		TambahRute()
 	default:
-		PrintError("Pilihan tidak valid")
+		utils.PrintMessage("Pilihan tidak valid", "error")
 		goto Step1
 	}
 
@@ -91,55 +92,55 @@ func DetailRute(Rute model.Rute) {
 	reader := bufio.NewReader(os.Stdin)
 
 	// PrintHead("Detail Rute Kereta Api")
-	fmt.Println(AlignTeksCenter("Detail Rute Kereta Api", 60))
+	fmt.Println(utils.AlignTeksCenter("Detail Rute Kereta Api", 60))
 
-	Divider("-")
+	utils.Divider("-")
 	fmt.Println("Kode Rute: ", Rute.Kode)
 	fmt.Println("Nama Rute: ", Rute.Nama)
-	fmt.Println("Harga: ", RupiahFormat(Rute.Harga))
+	fmt.Println("Harga: ", utils.RupiahFormat(Rute.Harga))
 	fmt.Println("Stasiun Awal: ", Rute.StasiunAwal.Nama)
 	fmt.Println("Stasiun Akhir: ", Rute.StasiunAkhir.Nama)
-	Divider("-")
+	utils.Divider("-")
 	fmt.Println("Rute Berhenti: ")
 	for index, stasiun := range Rute.RuteBerhenti {
 		if Rute.HargaTetap {
-			fmt.Printf("%d. %s - %s - %s (%s-%s)\n", index+1, stasiun.StasiunAwal.Nama, stasiun.StasiunAkhir.Nama, RupiahFormat(Rute.Harga), stasiun.Berangkat.Format("15:04"), stasiun.Tiba.Format("15:04"))
+			fmt.Printf("%d. %s - %s - %s (%s-%s)\n", index+1, stasiun.StasiunAwal.Nama, stasiun.StasiunAkhir.Nama, utils.RupiahFormat(Rute.Harga), stasiun.Berangkat.Format("15:04"), stasiun.Tiba.Format("15:04"))
 		} else {
-			fmt.Printf("%d. %s - %s - %s (%s-%s)\n", index+1, stasiun.StasiunAwal.Nama, stasiun.StasiunAkhir.Nama, RupiahFormat(Rute.Harga*(index+1)), stasiun.Berangkat.Format("15:04"), stasiun.Tiba.Format("15:04"))
+			fmt.Printf("%d. %s - %s - %s (%s-%s)\n", index+1, stasiun.StasiunAwal.Nama, stasiun.StasiunAkhir.Nama, utils.RupiahFormat(Rute.Harga*(index+1)), stasiun.Berangkat.Format("15:04"), stasiun.Tiba.Format("15:04"))
 		}
 	}
-	Divider("-")
+	utils.Divider("-")
 
-	fmt.Println(ColorText("[1] Edit Rute", 90, 49, false))
-	fmt.Println(ColorText("[2] Hapus Rute", 90, 49, false))
-	fmt.Println(ColorText("[0] Kembali", 90, 49, false))
+	fmt.Println(utils.ColorText("[1] Edit Rute", 90, 49, false))
+	fmt.Println(utils.ColorText("[2] Hapus Rute", 90, 49, false))
+	fmt.Println(utils.ColorText("[0] Kembali", 90, 49, false))
 
-	Divider("-")
+	utils.Divider("-")
 Step1:
 	fmt.Print("Pilih menu: ")
 	Select, err := reader.ReadString('\n')
 	Select = strings.TrimSpace(Select)
 	if err != nil {
-		PrintError("Terjadi kesalahan")
+		utils.PrintMessage("Terjadi kesalahan", "error")
 		goto Step1
 	}
-	if Select == "" && !IsNumeric(Select) {
-		PrintError("Pilihan tidak boleh kosong & harus berupa angka")
+	if Select == "" && !utils.IsNumeric(Select) {
+		utils.PrintMessage("Pilihan tidak boleh kosong & harus berupa angka", "error")
 		goto Step1
 	}
 
 	// Step2:
 	switch Select {
 	case "1":
-		ClearScreen()
+		utils.ClearScreen()
 		EditRute(Rute)
 	case "2":
 		DeleteRute(Rute)
 	case "0":
-		ClearScreen()
+		utils.ClearScreen()
 		RuteController()
 	default:
-		PrintError("Pilihan tidak valid")
+		utils.PrintMessage("Pilihan tidak valid", "error")
 		goto Step1
 	}
 }
@@ -147,7 +148,7 @@ Step1:
 func TambahRute() {
 	reader := bufio.NewReader(os.Stdin)
 
-	PrintHead("Tambah Data Rute")
+	utils.PrintHead("Tambah Data Rute")
 
 Step1:
 	fmt.Print("Masukan Kode Rute: ")
@@ -155,17 +156,17 @@ Step1:
 	Kode = strings.TrimSpace(Kode)
 
 	if err != nil {
-		PrintError("Terjadi kesalahan")
+		utils.PrintMessage("Terjadi kesalahan", "error")
 		goto Step1
 	}
 
 	if Kode == "" {
-		PrintError("Kode Rute tidak boleh kosong")
+		utils.PrintMessage("Kode Rute tidak boleh kosong", "error")
 		goto Step1
 	}
 
 	//check unique
-	_, HaveKode := FindOne(model.RuteList, model.Rute{Kode: Kode}, func(a, b model.Rute) int {
+	_, HaveKode := utils.FindOne(model.RuteList, model.Rute{Kode: Kode}, func(a, b model.Rute) int {
 		if a.Kode < b.Kode {
 			return -1
 		} else if a.Kode > b.Kode {
@@ -175,7 +176,7 @@ Step1:
 	})
 
 	if HaveKode {
-		PrintError("Kode Rute sudah ada")
+		utils.PrintMessage("Kode Rute sudah ada", "error")
 		goto Step1
 	}
 
@@ -184,11 +185,11 @@ Step2:
 	Nama, err := reader.ReadString('\n')
 	Nama = strings.TrimSpace(Nama)
 	if err != nil {
-		PrintError("Terjadi kesalahan")
+		utils.PrintMessage("Terjadi kesalahan", "error")
 		goto Step2
 	}
 	if Nama == "" {
-		PrintError("Nama Rute tidak boleh kosong")
+		utils.PrintMessage("Nama Rute tidak boleh kosong", "error")
 		goto Step2
 	}
 Step3:
@@ -196,16 +197,16 @@ Step3:
 	Harga, err := reader.ReadString('\n')
 	Harga = strings.TrimSpace(Harga)
 	if err != nil {
-		PrintError("Terjadi kesalahan")
+		utils.PrintMessage("Terjadi kesalahan", "error")
 		goto Step3
 	}
 	if Harga == "" {
-		PrintError("Harga Rute tidak boleh kosong")
+		utils.PrintMessage("Harga Rute tidak boleh kosong", "error")
 		goto Step3
 	}
 	HargaInt, err := strconv.Atoi(Harga)
 	if err != nil {
-		PrintError("Harga Rute harus berupa angka")
+		utils.PrintMessage("Harga Rute harus berupa angka", "error")
 		goto Step3
 	}
 Step4:
@@ -214,15 +215,15 @@ Step4:
 	HargaTetap, err := reader.ReadString('\n')
 	HargaTetap = strings.TrimSpace(HargaTetap)
 	if err != nil {
-		PrintError("Terjadi kesalahan")
+		utils.PrintMessage("Terjadi kesalahan", "error")
 		goto Step4
 	}
 	if HargaTetap == "" {
-		PrintError("Harga Tetap tidak boleh kosong")
+		utils.PrintMessage("Harga Tetap tidak boleh kosong", "error")
 		goto Step4
 	}
 	if HargaTetap != "y" && HargaTetap != "n" {
-		PrintError("Harga Tetap harus berupa y/n")
+		utils.PrintMessage("Harga Tetap harus berupa y/n", "error")
 		goto Step4
 	}
 	if HargaTetap == "y" {
@@ -235,25 +236,25 @@ Step5:
 	Gerbong, err := reader.ReadString('\n')
 	Gerbong = strings.TrimSpace(Gerbong)
 	if err != nil {
-		PrintError("Terjadi kesalahan")
+		utils.PrintMessage("Terjadi kesalahan", "error")
 		goto Step5
 	}
 	if Gerbong == "" {
-		PrintError("Jumlah Gerbong tidak boleh kosong")
+		utils.PrintMessage("Jumlah Gerbong tidak boleh kosong", "error")
 		goto Step5
 	}
 
-	if !IsNumeric(Gerbong) {
-		PrintError("Jumlah Gerbong harus berupa angka")
+	if !utils.IsNumeric(Gerbong) {
+		utils.PrintMessage("Jumlah Gerbong harus berupa angka", "error")
 		goto Step5
 	}
 
 	GerbongInt, err := strconv.Atoi(Gerbong)
 	if err != nil {
-		PrintError("Jumlah Gerbong harus berupa angka")
+		utils.PrintMessage("Jumlah Gerbong harus berupa angka", "error")
 		goto Step5
 	}
-	Divider("-")
+	utils.Divider("-")
 	for _, kereta := range model.ListKereta {
 		fmt.Printf("[%d] %s\n", kereta.Kode, kereta.Nama)
 	}
@@ -262,23 +263,23 @@ Step6:
 	KodeKereta, err := reader.ReadString('\n')
 	KodeKereta = strings.TrimSpace(KodeKereta)
 	if err != nil {
-		PrintError("Terjadi kesalahan")
+		utils.PrintMessage("Terjadi kesalahan", "error")
 		goto Step6
 	}
 	if KodeKereta == "" {
-		PrintError("Kode Kereta tidak boleh kosong")
+		utils.PrintMessage("Kode Kereta tidak boleh kosong", "error")
 		goto Step6
 	}
 
 	KodeKeretaInt, err := strconv.Atoi(KodeKereta)
 	if err != nil {
-		PrintError("Kode Kereta harus berupa angka")
+		utils.PrintMessage("Kode Kereta harus berupa angka", "error")
 		goto Step6
 	}
 
 	var Kereta model.Kereta
 	var Have bool
-	Kereta, Have = FindOne(model.ListKereta, model.Kereta{Kode: KodeKeretaInt}, func(a, b model.Kereta) int {
+	Kereta, Have = utils.FindOne(model.ListKereta, model.Kereta{Kode: KodeKeretaInt}, func(a, b model.Kereta) int {
 		if a.Kode < b.Kode {
 			return -1
 		} else if a.Kode > b.Kode {
@@ -287,7 +288,7 @@ Step6:
 		return 0
 	})
 	if !Have {
-		PrintError("Kode Kereta tidak ditemukan")
+		utils.PrintMessage("Kode Kereta tidak ditemukan", "error")
 		goto Step6
 	}
 	for _, stasiun := range model.ListStasiun {
@@ -298,15 +299,15 @@ Step7:
 	KodeStasiunAwal, err := reader.ReadString('\n')
 	KodeStasiunAwal = strings.TrimSpace(KodeStasiunAwal)
 	if err != nil {
-		PrintError("Terjadi kesalahan")
+		utils.PrintMessage("Terjadi kesalahan", "error")
 		goto Step7
 	}
 	if KodeStasiunAwal == "" {
-		PrintError("Kode Stasiun Awal tidak boleh kosong")
+		utils.PrintMessage("Kode Stasiun Awal tidak boleh kosong", "error")
 		goto Step7
 	}
 	var StasiunAwal model.Stasiun
-	StasiunAwal, Have = FindOne(model.ListStasiun, model.Stasiun{IDStasiun: KodeStasiunAwal}, func(a, b model.Stasiun) int {
+	StasiunAwal, Have = utils.FindOne(model.ListStasiun, model.Stasiun{IDStasiun: KodeStasiunAwal}, func(a, b model.Stasiun) int {
 		if a.IDStasiun < b.IDStasiun {
 			return -1
 		} else if a.IDStasiun > b.IDStasiun {
@@ -316,7 +317,7 @@ Step7:
 	})
 
 	if !Have {
-		PrintError("Kode Stasiun Awal tidak ditemukan")
+		utils.PrintMessage("Kode Stasiun Awal tidak ditemukan", "error")
 		goto Step7
 	}
 Step8:
@@ -324,15 +325,15 @@ Step8:
 	KodeStasiunAkhir, err := reader.ReadString('\n')
 	KodeStasiunAkhir = strings.TrimSpace(KodeStasiunAkhir)
 	if err != nil {
-		PrintError("Terjadi kesalahan")
+		utils.PrintMessage("Terjadi kesalahan", "error")
 		goto Step8
 	}
 	if KodeStasiunAkhir == "" {
-		PrintError("Kode Stasiun Akhir tidak boleh kosong")
+		utils.PrintMessage("Kode Stasiun Akhir tidak boleh kosong", "error")
 		goto Step8
 	}
 	var StasiunAkhir model.Stasiun
-	StasiunAkhir, Have = FindOne(model.ListStasiun, model.Stasiun{IDStasiun: KodeStasiunAkhir}, func(a, b model.Stasiun) int {
+	StasiunAkhir, Have = utils.FindOne(model.ListStasiun, model.Stasiun{IDStasiun: KodeStasiunAkhir}, func(a, b model.Stasiun) int {
 		if a.IDStasiun < b.IDStasiun {
 			return -1
 		} else if a.IDStasiun > b.IDStasiun {
@@ -341,7 +342,7 @@ Step8:
 		return 0
 	})
 	if !Have {
-		PrintError("Kode Stasiun Akhir tidak ditemukan")
+		utils.PrintMessage("Kode Stasiun Akhir tidak ditemukan", "error")
 		goto Step8
 	}
 	// add rute on RuteList
@@ -357,14 +358,14 @@ Step8:
 		RuteBerhenti: []model.RuteBerhenti{},
 	}
 	model.RuteList = append(model.RuteList, baru)
-	ClearScreen()
-	fmt.Println(ColorText("Rute berhasil ditambahkan.", 30, 42, false))
+	utils.ClearScreen()
+	fmt.Println(utils.ColorText("Rute berhasil ditambahkan.", 30, 42, false))
 	RuteController()
 }
 
 func EditRute(Rute model.Rute) {
 
-	PrintHead("Edit Data Rute")
+	utils.PrintHead("Edit Data Rute")
 	reader := bufio.NewReader(os.Stdin)
 
 Step1:
@@ -372,12 +373,12 @@ Step1:
 	Nama, err := reader.ReadString('\n')
 	Nama = strings.TrimSpace(Nama)
 	if err != nil {
-		PrintError("Terjadi kesalahan")
+		utils.PrintMessage("Terjadi kesalahan", "error")
 		goto Step1
 	}
 
 	if Nama == "" {
-		PrintError("Nama Rute tidak boleh kosong")
+		utils.PrintMessage("Nama Rute tidak boleh kosong", "error")
 		goto Step1
 	}
 Step2:
@@ -385,16 +386,16 @@ Step2:
 	Harga, err := reader.ReadString('\n')
 	Harga = strings.TrimSpace(Harga)
 	if err != nil {
-		PrintError("Terjadi kesalahan")
+		utils.PrintMessage("Terjadi kesalahan", "error")
 		goto Step2
 	}
 	if Harga == "" {
-		PrintError("Harga Rute tidak boleh kosong")
+		utils.PrintMessage("Harga Rute tidak boleh kosong", "error")
 		goto Step2
 	}
 	HargaInt, err := strconv.Atoi(Harga)
 	if err != nil {
-		PrintError("Harga Rute harus berupa angka")
+		utils.PrintMessage("Harga Rute harus berupa angka", "error")
 		goto Step2
 	}
 Step3:
@@ -409,15 +410,15 @@ Step3:
 	HargaTetap, err := reader.ReadString('\n')
 	HargaTetap = strings.TrimSpace(HargaTetap)
 	if err != nil {
-		PrintError("Terjadi kesalahan")
+		utils.PrintMessage("Terjadi kesalahan", "error")
 		goto Step3
 	}
 	if HargaTetap == "" {
-		PrintError("Harga Tetap tidak boleh kosong")
+		utils.PrintMessage("Harga Tetap tidak boleh kosong", "error")
 		goto Step3
 	}
 	if HargaTetap != "y" && HargaTetap != "n" {
-		PrintError("Harga Tetap harus berupa y/n")
+		utils.PrintMessage("Harga Tetap harus berupa y/n", "error")
 		goto Step3
 	}
 	if HargaTetap == "y" {
@@ -430,23 +431,23 @@ Step4:
 	Gerbong, err := reader.ReadString('\n')
 	Gerbong = strings.TrimSpace(Gerbong)
 	if err != nil {
-		PrintError("Terjadi kesalahan")
+		utils.PrintMessage("Terjadi kesalahan", "error")
 		goto Step4
 	}
 	if Gerbong == "" {
-		PrintError("Jumlah Gerbong tidak boleh kosong")
+		utils.PrintMessage("Jumlah Gerbong tidak boleh kosong", "error")
 		goto Step4
 	}
-	if !IsNumeric(Gerbong) {
-		PrintError("Jumlah Gerbong harus berupa angka")
+	if !utils.IsNumeric(Gerbong) {
+		utils.PrintMessage("Jumlah Gerbong harus berupa angka", "error")
 		goto Step4
 	}
 	GerbongInt, err := strconv.Atoi(Gerbong)
 	if err != nil {
-		PrintError("Jumlah Gerbong harus berupa angka")
+		utils.PrintMessage("Jumlah Gerbong harus berupa angka", "error")
 		goto Step4
 	}
-	Divider("-")
+	utils.Divider("-")
 	for _, kereta := range model.ListKereta {
 		fmt.Printf("[%d] %s\n", kereta.Kode, kereta.Nama)
 	}
@@ -455,21 +456,21 @@ Step5:
 	KodeKereta, err := reader.ReadString('\n')
 	KodeKereta = strings.TrimSpace(KodeKereta)
 	if err != nil {
-		PrintError("Terjadi kesalahan")
+		utils.PrintMessage("Terjadi kesalahan", "error")
 		goto Step5
 	}
 	if KodeKereta == "" {
-		PrintError("Kode Kereta tidak boleh kosong")
+		utils.PrintMessage("Kode Kereta tidak boleh kosong", "error")
 		goto Step5
 	}
 	KodeKeretaInt, err := strconv.Atoi(KodeKereta)
 	if err != nil {
-		PrintError("Kode Kereta harus berupa angka")
+		utils.PrintMessage("Kode Kereta harus berupa angka", "error")
 		goto Step5
 	}
 	var Kereta model.Kereta
 	var Have bool
-	Kereta, Have = FindOne(model.ListKereta, model.Kereta{Kode: KodeKeretaInt}, func(a, b model.Kereta) int {
+	Kereta, Have = utils.FindOne(model.ListKereta, model.Kereta{Kode: KodeKeretaInt}, func(a, b model.Kereta) int {
 		if a.Kode < b.Kode {
 			return -1
 		} else if a.Kode > b.Kode {
@@ -478,7 +479,7 @@ Step5:
 		return 0
 	})
 	if !Have {
-		PrintError("Kode Kereta tidak ditemukan")
+		utils.PrintMessage("Kode Kereta tidak ditemukan", "error")
 		goto Step5
 	}
 	for _, stasiun := range model.ListStasiun {
@@ -489,15 +490,15 @@ Step6:
 	KodeStasiunAwal, err := reader.ReadString('\n')
 	KodeStasiunAwal = strings.TrimSpace(KodeStasiunAwal)
 	if err != nil {
-		PrintError("Terjadi kesalahan")
+		utils.PrintMessage("Terjadi kesalahan", "error")
 		goto Step6
 	}
 	if KodeStasiunAwal == "" {
-		PrintError("Kode Stasiun Awal tidak boleh kosong")
+		utils.PrintMessage("Kode Stasiun Awal tidak boleh kosong", "error")
 		goto Step6
 	}
 	var StasiunAwal model.Stasiun
-	StasiunAwal, Have = FindOne(model.ListStasiun, model.Stasiun{IDStasiun: KodeStasiunAwal}, func(a, b model.Stasiun) int {
+	StasiunAwal, Have = utils.FindOne(model.ListStasiun, model.Stasiun{IDStasiun: KodeStasiunAwal}, func(a, b model.Stasiun) int {
 		if a.IDStasiun < b.IDStasiun {
 			return -1
 		} else if a.IDStasiun > b.IDStasiun {
@@ -506,7 +507,7 @@ Step6:
 		return 0
 	})
 	if !Have {
-		PrintError("Kode Stasiun Awal tidak ditemukan")
+		utils.PrintMessage("Kode Stasiun Awal tidak ditemukan", "error")
 		goto Step6
 	}
 Step7:
@@ -514,15 +515,15 @@ Step7:
 	KodeStasiunAkhir, err := reader.ReadString('\n')
 	KodeStasiunAkhir = strings.TrimSpace(KodeStasiunAkhir)
 	if err != nil {
-		PrintError("Terjadi kesalahan")
+		utils.PrintMessage("Terjadi kesalahan", "error")
 		goto Step7
 	}
 	if KodeStasiunAkhir == "" {
-		PrintError("Kode Stasiun Akhir tidak boleh kosong")
+		utils.PrintMessage("Kode Stasiun Akhir tidak boleh kosong", "error")
 		goto Step7
 	}
 	var StasiunAkhir model.Stasiun
-	StasiunAkhir, Have = FindOne(model.ListStasiun, model.Stasiun{IDStasiun: KodeStasiunAkhir}, func(a, b model.Stasiun) int {
+	StasiunAkhir, Have = utils.FindOne(model.ListStasiun, model.Stasiun{IDStasiun: KodeStasiunAkhir}, func(a, b model.Stasiun) int {
 		if a.IDStasiun < b.IDStasiun {
 			return -1
 		} else if a.IDStasiun > b.IDStasiun {
@@ -531,7 +532,7 @@ Step7:
 		return 0
 	})
 	if !Have {
-		PrintError("Kode Stasiun Akhir tidak ditemukan")
+		utils.PrintMessage("Kode Stasiun Akhir tidak ditemukan", "error")
 		goto Step7
 	}
 	// update rute on RuteList
@@ -546,8 +547,8 @@ Step7:
 			model.RuteList[i].StasiunAkhir = StasiunAkhir
 		}
 	}
-	ClearScreen()
-	fmt.Println(ColorText("Rute berhasil diubah.", 30, 42, false))
+	utils.ClearScreen()
+	fmt.Println(utils.ColorText("Rute berhasil diubah.", 30, 42, false))
 	RuteController()
 }
 
@@ -561,15 +562,15 @@ func DeleteRute(Rute model.Rute) {
 		for i, rute := range model.RuteList {
 			if rute.Kode == Rute.Kode {
 				model.RuteList = append(model.RuteList[:i], model.RuteList[i+1:]...)
-				ClearScreen()
-				fmt.Println(ColorText("Rute berhasil dihapus.", 30, 42, false))
+				utils.ClearScreen()
+				fmt.Println(utils.ColorText("Rute berhasil dihapus.", 30, 42, false))
 				RuteController()
 				break
 			}
 		}
 	} else {
-		ClearScreen()
-		PrintError("Rute tidak dihapus")
+		utils.ClearScreen()
+		utils.PrintMessage("Rute tidak dihapus", "error")
 		DetailRute(Rute)
 	}
 }

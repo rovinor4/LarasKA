@@ -1,4 +1,4 @@
-package controller
+package utils
 
 func SelectionSort[T any](arr []T, less func(a, b T) bool) []T {
     n := len(arr)

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"laraska/utils"
 	"os"
 	"time"
 )
@@ -11,7 +12,7 @@ func MenuAwalAdmin() {
 Step1:
 	var input string
 	now := time.Now()
-	PrintBoxWithText(60, []string{
+	utils.PrintBoxWithText(60, []string{
 		"LarasKA (Layanan Reservasi Kereta Api)",
 		fmt.Sprintf("Hai, %s", AuthData.admin.Name),
 		now.Format("01-02-2006 15:04 WIB"),
@@ -26,33 +27,33 @@ Step1:
 		fmt.Println("[6] Keluar Akun")
 		fmt.Println("[7] Tutup Program")
 
-		Divider("-")
+		utils.Divider("-")
 		fmt.Print("Pilih menu: ")
 		fmt.Scan(&input)
 
 		switch input {
 		case "1":
-			ClearScreen()
+			utils.ClearScreen()
 			MenuStasiun()
 		case "2":
-			ClearScreen()
+			utils.ClearScreen()
 			MenuKereta()
 		case "3":
-			ClearScreen()
+			utils.ClearScreen()
 			RuteController()
 		case "4":
-			ClearScreen()
+			utils.ClearScreen()
 		case "5":
-			ClearScreen()
+			utils.ClearScreen()
 		case "6":
-			ClearScreen()
+			utils.ClearScreen()
 			AuthController()
 		case "7":
 			os.Exit(1)
 			return
 		default:
-			ClearScreen()
-			PrintError("Menu tidak ada")
+			utils.ClearScreen()
+			utils.PrintMessage("Menu tidak ada","error")
 			goto Step1
 		}
 	}
