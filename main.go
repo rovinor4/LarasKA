@@ -8,9 +8,11 @@ import (
 )
 
 func main() {
- 
-	utils.PrintMessage("Selamat Datang di LarasKA", "info")
+
+	controller.StasiunController()
+
 	return
+
 	utils.PrintBoxWithText(60, []string{
 		"LarasKA (Layanan Reservasi Kereta Api)",
 		"Telkom University Surabaya | Informatika",

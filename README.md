@@ -4,10 +4,8 @@ LarasKA adalah aplikasi reservasi tiket kereta api yang dibangun pakai Golang
 
 ## Anggota
 - Rovino Ramadhani (10307240031)
-- Rangga Dani Prasetya (103072400057),
-- Setyo Nugroho (103072400045),
-
-
+- Rangga Dani Prasetya (103072400057)
+- Setyo Nugroho (103072400045)
 
 ## Cara Instalasi
 
@@ -21,3 +19,5 @@ LarasKA adalah aplikasi reservasi tiket kereta api yang dibangun pakai Golang
    `./laraska`
 
 ## Dokumentasi
+
+[Dokumentasi LarasKA](https://github.com/rovinor4/LarasKA/issues?q=is%3Aissue%20label%3Adocumentation)

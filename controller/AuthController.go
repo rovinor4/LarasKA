@@ -41,6 +41,9 @@ Step1:
 	}
 
 	switch pilihan {
+	case "1":
+		utils.ClearScreen()
+		LoginForUser()
 	case "2":
 		utils.ClearScreen()
 		RegisterPenumpang()
@@ -52,6 +55,7 @@ Step1:
 		goto Step1
 	}
 }
+
 
 func LoginForAdmin() {
 	var username, password string
@@ -242,6 +246,52 @@ FormPassword:
 	}
 	model.ListUser = append(model.ListUser, User)
 	utils.ClearScreen()
-	fmt.Println(utils.ColorText("User Berhasil Terdaftar", 30, 42, false))
+	utils.PrintMessage("User Berhasil Terdaftar", "success")
 	AuthController()
+}
+
+func LoginForUser() {
+	render := bufio.NewReader(os.Stdin)
+
+	utils.PrintBoxWithText(60, []string{
+		"Login Sebagai Pengguna",
+		"LarasKA (Layanan Reservasi Kereta Api)",
+	})
+
+FormUsername:
+	fmt.Print("Masukan username (email/nomor hp) : ")
+	username, err := render.ReadString('\n')
+	username = strings.TrimSpace(username)
+	if username == "" || err != nil {
+		utils.PrintMessage("Username wajib di isi", "error")
+		goto FormUsername
+	}
+FormPassword:
+	fmt.Print("Masukan password : ")
+	password, err := render.ReadString('\n')
+	password = strings.TrimSpace(password)
+	if password == "" || err != nil {
+		utils.PrintMessage("Password wajib di isi", "error")
+		goto FormPassword
+	}
+
+	isNull := true
+	for _, user := range model.ListUser {
+		if (user.Email == username || user.NoHP == username) && user.Password == password {
+			AuthData = AuthStruct{
+				is_admin: false,
+				User:     user,
+			}
+			isNull = false
+			utils.ClearScreen()
+			return
+		}
+	}
+
+	if isNull == true {
+		utils.PrintMessage("Username dan password salah", "error")
+		utils.Divider("-")
+		goto FormUsername
+	}
+
 }
