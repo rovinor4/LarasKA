@@ -9,7 +9,7 @@ import (
 
 func main() {
 
-	controller.StasiunController()
+	controller.MenuKereta()
 
 	return
 

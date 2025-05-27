@@ -49,7 +49,7 @@ PilihMenu:
 		StasiunController()
 	case "2":
 		utils.ClearScreen()
-		MenuKereta()
+		KeretaController()
 	case "3":
 		utils.ClearScreen()
 		RuteController()

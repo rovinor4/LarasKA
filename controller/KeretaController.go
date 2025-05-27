@@ -10,68 +10,44 @@ import (
 	"strings"
 )
 
-func MenuKereta() {
+func KeretaController() {
 	var choice string
-	var menuList = []string{
-		"Tampilkan Kereta",
-		"Tambah Kereta",
-		"Edit Kereta",
-		"Hapus Kereta",
-		"Kembali ke Menu Awal",
-	}
 
 	utils.PrintHead("Menu Kereta")
 
-	for index, menu := range menuList {
-		fmt.Printf("[%d] %s\n", index+1, menu)
-	}
+	fmt.Println("[1] Tampilkan Data Kereta")
+	fmt.Println("[2] Tambah Data Kereta")
+	fmt.Println("[3] Edit Data Kereta")
+	fmt.Println("[4] Hapus Data Kereta")
+	fmt.Println("[5] Kembali Ke Menu Awal")
 	utils.Divider("-")
 
 	fmt.Print("Pilih menu: ")
 	_, err := fmt.Scan(&choice)
 	if err != nil || !utils.IsNumeric(choice) {
 		utils.PrintMessage("Pilihan tidak valid, silakan coba lagi.", "error")
-		MenuKereta()
+		KeretaController()
 		return
 	}
 
 	switch {
 	case choice == "1":
-		TampilkanKereta()
+		showKereta()
 	case choice == "2":
-		TambahKereta()
+		addKereta()
 	case choice == "3":
-		EditKereta()
+		updateKereta()
 	case choice == "4":
-		HapusKereta()
+		deleteKereta()
 	case choice == "5":
 		MenuAwalAdmin()
 	default:
 		utils.PrintMessage("Pilihan tidak valid, silakan coba lagi.", "error")
-		MenuKereta()
+		KeretaController()
 	}
 }
 
-func TableKereta(Title string) {
-	var mapped []map[string]string
-	for _, dt := range model.ListKereta {
-		mapped = append(mapped, map[string]string{
-			"Kode":  strconv.Itoa(dt.Kode),
-			"Nama":  dt.Nama,
-			"Kelas": dt.Kelas,
-		})
-	}
-
-	utils.PrintTable(
-		[]string{"Kode", "Nama", "Kelas"},
-		mapped,
-		[]string{"Kode", "Nama", "Kelas"},
-		4,
-		Title,
-	)
-}
-
-func TampilkanKereta() {
+func showKereta() {
 
 	var searchOn, sortOn, sortType string
 
@@ -110,17 +86,12 @@ Step1:
 
 	}
 
-	Title := "Data Kereta"
-	if searchOn != "" {
-		Title = fmt.Sprintf("Hasil Pencarian Data Kereta : %s", searchOn)
-	}
-
 	utils.PrintTable(
 		[]string{"Kode", "Nama", "Kelas"},
 		mapped,
 		[]string{"Kode", "Nama", "Kelas"},
 		4,
-		Title,
+		"Data Kereta",
 	)
 
 	fmt.Println(utils.ColorText("[1] Pencarian", 90, 49, false))
@@ -137,16 +108,16 @@ Step2:
 		utils.PrintMessage("Pilihan tidak valid, silakan coba lagi.", "error")
 	}
 
+Step3:
 	switch menu {
 	case "1":
-	Step2Search:
 		fmt.Print("Masukan keyword pencarian : ")
 		search, _ := reader.ReadString('\n')
 		searchOn = strings.TrimSpace(search)
 
 		if searchOn == "" {
 			utils.PrintMessage("Pencarian Tidak Boleh Kosong", "error")
-			goto Step2Search
+			goto Step3
 		}
 
 		utils.ClearScreen()
@@ -157,29 +128,27 @@ Step2:
 		sortOn = ""
 		sortType = ""
 		utils.ClearScreen()
-		goto Step1
+		goto Step3
 	case "3":
-	Step2Sort:
 		fmt.Print("Pilih kolom untuk sort (Kode/Nama/Kelas) : ")
 		fmt.Scan(&sortOn)
 		if sortOn != "Kode" && sortOn != "Nama" && sortOn != "Kelas" {
 			utils.PrintMessage("Pastikan kamu memilih (Kode/Nama/Kelas)", "error")
-			goto Step2Sort
+			goto Step3
 		}
-	Step2SortSelect:
 		fmt.Print("Pilih jenis sort (asc/desc) : ")
 		fmt.Scan(&sortType)
 
 		if sortType != "asc" && sortType != "desc" {
 			utils.PrintMessage("Pastikan kamu memilih (asc/desc)", "error")
-			goto Step2SortSelect
+			goto Step3
 		}
 
 		utils.ClearScreen()
 		goto Step1
 	case "4":
 		utils.ClearScreen()
-		MenuKereta()
+		KeretaController()
 	default:
 		utils.PrintMessage("Pilihan tidak valid, silakan coba lagi.", "error")
 		goto Step2
@@ -187,86 +156,160 @@ Step2:
 
 }
 
-func TambahKereta() {
-	reader := bufio.NewReader(os.Stdin)
+func formKereta(Kereta model.Kereta, Update bool) model.Kereta {
 	var kode int
-	utils.PrintHead("Tambah Data Kereta")
-	fmt.Print("Masukan Kode Kereta: ")
-	_, err := fmt.Scan(&kode)
 
-	if err != nil {
-		utils.PrintMessage("Hanya di izinakan berupa angka", "error")
-		TambahKereta()
+	render := bufio.NewReader(os.Stdin)
+	utils.PrintHead("Form Kereta")
+
+	format := "Masukkan %s %s: "
+	if Update {
+		format = "Masukkan %s (%s): "
 	}
 
-	fmt.Print("Masukan Nama Kereta: ")
-	nama, _ := reader.ReadString('\n')
-	fmt.Print("Masukan Kelas Kereta: ")
-	kelas, _ := reader.ReadString('\n')
-	nama = strings.TrimSpace(nama)
-	kelas = strings.TrimSpace(kelas)
+Step1:
+	fmt.Printf(format, "Kode Kereta", Kereta.Kode)
+	kodeInput, err := render.ReadString('\n')
+	kodeInput = strings.TrimSpace(kodeInput)
 
-	if nama == "" || kelas == "" {
-		utils.PrintMessage("Nama kereta atau kelas tidak boleh kosong", "error")
-		TambahKereta()
-		return
+	if !Update && (err != nil || kodeInput == "") {
+		utils.PrintMessage("Input tidak boleh kosong", "error")
+		goto Step1
 	}
 
-	baru := model.Kereta{Kode: kode, Nama: nama, Kelas: kelas}
-	model.ListKereta = append(model.ListKereta, baru)
-	utils.ClearScreen()
-	fmt.Println(utils.ColorText("Kereta berhasil ditambahkan.", 30, 42, false))
-	MenuKereta()
+	kode, err = strconv.Atoi(kodeInput)
+	if !Update && (err != nil || kode <= 0) {
+		utils.PrintMessage("Kode harus berupa angka positif", "error")
+		goto Step1
+	}
+
+	if !Update && kodeInput != "" {
+		_, uniq := utils.FindOne(model.ListKereta, model.Kereta{Kode: kode}, func(a, b model.Kereta) int {
+			if a.Kode < b.Kode {
+				return -1
+			} else if a.Kode > b.Kode {
+				return 1
+			}
+			return 0
+		})
+		Kereta.Kode = kode
+		if uniq {
+			utils.PrintMessage("Kode Kereta sudah ada, silakan coba lagi.", "error")
+			goto Step1
+		}
+	}
+
+Step2:
+	fmt.Printf(format, "Nama Kereta", Kereta.Nama)
+	namaInput, err := render.ReadString('\n')
+	namaInput = strings.TrimSpace(namaInput)
+	if !Update && (err != nil || namaInput == "") {
+		utils.PrintMessage("Input tidak boleh kosong", "error")
+		goto Step2
+	}
+	if !Update && namaInput != "" {
+		Kereta.Nama = namaInput
+	}
+Step3:
+	fmt.Printf(format, "Kelas Kereta", Kereta.Kelas)
+	kelasInput, err := render.ReadString('\n')
+	kelasInput = strings.TrimSpace(kelasInput)
+	if !Update && (err != nil || kelasInput == "") {
+		utils.PrintMessage("Input tidak boleh kosong", "error")
+		goto Step3
+	}
+	if !Update && kelasInput != "" {
+		Kereta.Kelas = kelasInput
+	}
+
+	return model.Kereta{
+		Kode:  Kereta.Kode,
+		Nama:  Kereta.Nama,
+		Kelas: Kereta.Kelas,
+	}
 
 }
 
-func EditKereta() {
-	reader := bufio.NewReader(os.Stdin)
+func addKereta() {
+	utils.PrintHead("Tambah Data Kereta")
+	kereta := formKereta(model.Kereta{}, false)
+	model.ListKereta = append(model.ListKereta, kereta)
+	utils.ClearScreen()
+	utils.PrintMessage("Kereta berhasil ditambahkan.", "success")
+	KeretaController()
+}
+
+func updateKereta() {
 	var kode int
-	TableKereta("Edit Data Kereta")
-	fmt.Print("Masukan Kode Kereta untuk diubah: ")
-	fmt.Scan(&kode)
+	utils.PrintHead("Edit Data Kereta")
+Step1:
+	fmt.Print("Masukan Kode Kereta yang ingin diubah: ")
+	_, err := fmt.Scan(&kode)
+	if err != nil || kode <= 0 {
+		utils.PrintMessage("Kode tidak valid, silakan coba lagi.", "error")
+		goto Step1
+	}
+	data, has := utils.FindOne(model.ListKereta, model.Kereta{Kode: kode}, func(a, b model.Kereta) int {
+		if a.Kode < b.Kode {
+			return -1
+		} else if a.Kode > b.Kode {
+			return 1
+		}
+		return 0
+	})
+
+	if !has {
+		utils.PrintMessage("Kode kereta tidak ditemukan, silakan coba lagi.", "error")
+		goto Step1
+	}
+
+	kereta := formKereta(data, true)
 	for i, kt := range model.ListKereta {
 		if kt.Kode == kode {
-			fmt.Printf("Masukan Nama Kereta baru (%s): ", kt.Nama)
-			nama, _ := reader.ReadString('\n')
-			fmt.Printf("Masukan Kelas Kereta baru (%s): ", kt.Kelas)
-			kelas, _ := reader.ReadString('\n')
-			if nama != "" {
-				model.ListKereta[i].Nama = strings.TrimSpace(nama)
-			}
-
-			if kelas != "" {
-				model.ListKereta[i].Kelas = strings.TrimSpace(kelas)
-			}
-
+			model.ListKereta[i] = kereta
 			utils.ClearScreen()
-			fmt.Println(utils.ColorText("Kereta berhasil diubah.", 30, 42, false))
-			MenuKereta()
+			fmt.Println("Kereta berhasil diubah.")
+			KeretaController()
 			return
 		}
 	}
-	utils.PrintMessage("Kode kereta tidak ditemukan.", "error")
-	MenuKereta()
+	utils.PrintMessage("Terjadi kesalahan saat mengubah data kereta.", "error")
+	utils.ClearScreen()
+	updateKereta()
+	return
 }
 
-func HapusKereta() {
+func deleteKereta() {
 	var kode int
-	TableKereta("Hapus Data Kereta")
-Input:
-	fmt.Print("Masukan Kode Kereta untuk dihapus: ")
-	fmt.Scan(&kode)
+	utils.PrintHead("Hapus Data Kereta")
+Step1:
+	fmt.Print("Masukan Kode Kereta yang ingin dihapus: ")
+	_, err := fmt.Scan(&kode)
+	if err != nil || kode <= 0 {
+		utils.PrintMessage("Kode tidak valid, silakan coba lagi.", "error")
+		goto Step1
+	}
+	_, has := utils.FindOne(model.ListKereta, model.Kereta{Kode: kode}, func(a, b model.Kereta) int {
+		if a.Kode < b.Kode {
+			return -1
+		} else if a.Kode > b.Kode {
+			return 1
+		}
+		return 0
+	})
+	if !has {
+		utils.PrintMessage("Kode kereta tidak ditemukan, silakan coba lagi.", "error")
+		goto Step1
+	}
 	for i, kt := range model.ListKereta {
 		if kt.Kode == kode {
 			model.ListKereta = append(model.ListKereta[:i], model.ListKereta[i+1:]...)
 			utils.ClearScreen()
-			fmt.Println("Kereta berhasil dihapus.")
-			MenuKereta()
+			utils.PrintMessage("Kereta berhasil dihapus.", "success")
+			KeretaController()
 			return
 		}
 	}
-
-	utils.PrintMessage("Kode kereta tidak ditemukan.", "error")
-	goto Input
+	utils.PrintMessage("Terjadi kesalahan saat menghapus data", "error")
 
 }
