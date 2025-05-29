@@ -1,4 +1,4 @@
-package controller
+package admin
 
 import (
 	"bufio"
@@ -10,8 +10,9 @@ import (
 	"strings"
 )
 
+
 func RuteController() {
-	reader := bufio.NewReader(os.Stdin)
+	var reader = bufio.NewReader(os.Stdin)
 
 	var RuteListMap []map[string]string
 

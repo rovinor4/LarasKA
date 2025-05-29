@@ -11,9 +11,8 @@ import (
 )
 
 type AuthStruct struct {
-	is_admin bool
-	admin    model.Admin
-	User     model.User
+	Admin model.Admin
+	User  model.User
 }
 
 var AuthData AuthStruct
@@ -88,12 +87,11 @@ Form:
 	for _, admin := range model.ListAdmin {
 		if admin.Username == username && admin.Pass == password {
 			AuthData = AuthStruct{
-				is_admin: true,
-				admin:    admin,
+				Admin: admin,
 			}
 			isNull = false
 			utils.ClearScreen()
-			MenuAwalAdmin()
+
 			return
 		}
 	}
@@ -309,12 +307,11 @@ FormPassword:
 	for _, user := range model.ListUser {
 		if (user.Email == username || user.NoHP == username) && user.Password == password {
 			AuthData = AuthStruct{
-				is_admin: false,
-				User:     user,
+				User: user,
 			}
 			isNull = false
 			utils.ClearScreen()
-			MenuAwalUser()
+			// MenuAwalUser()
 			return
 		}
 	}

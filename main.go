@@ -1,17 +1,20 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"laraska/controller"
 	"laraska/utils"
 	"os"
 )
 
+var Reader = bufio.NewReader(os.Stdin)
+
 func main() {
 
-	controller.MenuKereta()
+	// controller.KeretaController()
 
-	return
+	// return
 
 	utils.PrintBoxWithText(60, []string{
 		"LarasKA (Layanan Reservasi Kereta Api)",

@@ -1,8 +1,9 @@
-package controller
+package user
 
 import (
 	"bufio"
 	"fmt"
+	"laraska/controller"
 	"laraska/model"
 	"laraska/utils"
 	"os"
@@ -217,8 +218,8 @@ FormJumlahPenumpang:
 	}
 
 	utils.Divider("-")
-	fmt.Println("Nama: ", AuthData.User.NamaLengkap)
-	fmt.Println("NIK: ", AuthData.User.NIK)
+	fmt.Println("Nama: ", controller.AuthData.User.NamaLengkap)
+	fmt.Println("NIK: ", controller.AuthData.User.NIK)
 	utils.Divider("-")
 
 	fmt.Print("Tambah user ini sebagai penumpang? (y/n): ")
@@ -230,8 +231,8 @@ FormJumlahPenumpang:
 
 		penumpang = append(penumpang, model.Penumpang{
 			// TODO: Kode,
-			Nama: AuthData.User.NamaLengkap,
-			NIK:  AuthData.User.NIK,
+			Nama: controller.AuthData.User.NamaLengkap,
+			NIK:  controller.AuthData.User.NIK,
 		})
 
 		penumpangs := formPenumpang(reader, jmlPenumpang)

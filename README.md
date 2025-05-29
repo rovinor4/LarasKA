@@ -1,4 +1,3 @@
-
 # LarasKA Tubes
 LarasKA adalah aplikasi reservasi tiket kereta api yang dibangun pakai Golang
 
@@ -9,13 +8,13 @@ LarasKA adalah aplikasi reservasi tiket kereta api yang dibangun pakai Golang
 
 ## Cara Instalasi
 
-1. Clone repo  
+1. Clone repo
    `git clone https://github.com/username/LarasKA.git`
-2. Masuk ke direktori proyek  
+2. Masuk ke direktori proyek
    `cd LarasKA`
-3. Build aplikasi  
+3. Build aplikasi
    `go build -o laraska`
-4. Jalankan  
+4. Jalankan
    `./laraska`
 
 ## Dokumentasi
