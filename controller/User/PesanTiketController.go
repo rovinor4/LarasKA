@@ -35,8 +35,11 @@ func PesanTiket() {
 	})
 
 FormStasiunAwal:
-	// var mappedStasiunAwal []map[string]string
-	fmt.Print("Masukkan kode stasiun awal (case sensitive e.g. MR): ")
+	utils.PrintBoxWithText(60, []string{
+		"LarasKA (Layanan Reservasi Kereta Api)",
+		"Pemesanan Tiket Kereta",
+	})
+	fmt.Print("Masukkan kode stasiun awal (e.g. MR): ")
 	stasiunAwal, errSA := reader.ReadString('\n')
 	stasiunAwal = strings.TrimSpace(stasiunAwal)
 	if stasiunAwal == "" || errSA != nil {
@@ -62,7 +65,7 @@ FormStasiunAwal:
 	Rute.StasiunAwal = dataStasiunAwal
 
 FormStasiunAkhir:
-	fmt.Print("Masukkan kode stasiun tujuan (case sensitive e.g. SB): ")
+	fmt.Print("Masukkan kode stasiun tujuan (e.g. SB): ")
 	stasiunAkhir, errST := reader.ReadString('\n')
 	stasiunAkhir = strings.TrimSpace(stasiunAkhir)
 	if stasiunAwal == "" || errST != nil {
@@ -120,7 +123,6 @@ FormStasiunAkhir:
 		})
 	}
 
-	var found = false
 	utils.ClearScreen()
 	utils.PrintTable(
 		[]string{"Kode", "Nama", "Kereta", "Stasiun Awal", "Stasiun Akhir", "Harga"},
@@ -130,26 +132,13 @@ FormStasiunAkhir:
 		"Rute Tersedia",
 	)
 
-Confirmation:
-	fmt.Print("Apakah anda ingin melanjnutkan (Y/n): ")
-	Continue, _ := reader.ReadString('\n')
-	Continue = strings.TrimSpace(Continue)
-	if strings.ToLower(Continue) == "y" {
-		goto FormPilihRute
-	} else if strings.ToLower(Continue) == "n" {
-		mappedRute = []map[string]string{}
-		utils.ClearScreen()
-		goto FormStasiunAwal
-	} else {
-		goto Confirmation
-	}
-
 FormPilihRute:
+	var found = false
 	fmt.Print("Pilih Kode Rute: ")
 	inputKodeRute, errKode := reader.ReadString('\n')
 	inputKodeRute = strings.TrimSpace(inputKodeRute)
 	if inputKodeRute == "" || errKode != nil {
-		fmt.Printf("Kode \"%s\" tidak ditemukan\n", inputKodeRute)
+		utils.PrintMessage("Kode rute tidak boleh kosong", "error")
 		goto FormPilihRute
 	}
 
@@ -160,7 +149,8 @@ FormPilihRute:
 	}
 
 	if !found {
-		fmt.Printf("Kode \"%s\" tidak ditemukan", inputKodeRute)
+		errFmt := fmt.Sprintf("Rute dengan kode \"%s\" tidak ditemukan\n", inputKodeRute)
+		utils.PrintMessage(errFmt, "error")
 		goto FormPilihRute
 	}
 
@@ -177,28 +167,47 @@ FormPilihRute:
 		Rute = ruteResult
 	}
 
+Confirmation:
+	fmt.Print("Apakah anda ingin melanjutkan (y/n): ")
+	Continue, _ := reader.ReadString('\n')
+	Continue = strings.TrimSpace(Continue)
+	if strings.ToLower(Continue) == "y" {
+		goto FormPilihJadwal
+	} else if strings.ToLower(Continue) == "n" {
+		mappedRute = []map[string]string{}
+		utils.ClearScreen()
+		goto FormStasiunAwal
+	} else {
+		goto Confirmation
+	}
+
 FormPilihJadwal:
+	utils.ClearScreen()
+	utils.PrintBoxWithText(60, []string{
+		"LarasKA (Layanan Reservasi Kereta Api)",
+		"Detail Pemesanan",
+	})
 	fmt.Print("Masukkan tanggal (DD/MM/YYYY): ")
 	Jadwal, errJadwal := reader.ReadString('\n')
 	Jadwal = strings.TrimSpace(Jadwal)
 	if Jadwal == "" || errJadwal != nil {
-		fmt.Println("Jadwal harus diisi")
+		utils.PrintMessage("Jadwal harus diisi", "error")
 		goto FormPilihJadwal
 	}
 
 	if !regexp.MustCompile(`^(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[0-2])/[0-9]{4}$`).MatchString(Jadwal) {
-		fmt.Println("Format jadwal salah")
+		utils.PrintMessage("Format jadwal salah", "error")
 		goto FormPilihJadwal
 	}
 
 	parsedJadwal, errParse := time.Parse("02/01/2006", Jadwal)
 	if errParse != nil {
-		fmt.Println("Format tanggal salah: ", errParse)
+		utils.PrintMessage("Format jadwal salah (e.g DD/MM/YYY)", "error")
 		goto FormPilihJadwal
 	}
 
 	if parsedJadwal.Before(time.Now()) {
-		fmt.Println("Tanggal yang anda inputkan sudah kadaluarsa")
+		utils.PrintMessage("Tanggal yang anda inputkan sudah kadaluarsa", "error")
 		goto FormPilihJadwal
 	}
 FormJumlahPenumpang:
@@ -223,125 +232,176 @@ FormJumlahPenumpang:
 	utils.Divider("-")
 
 	fmt.Print("Tambah user ini sebagai penumpang? (y/n): ")
-	userAsPenumpang, errUserAsPenumpang := reader.ReadString('\n')
+	userAsPenumpang, _ := reader.ReadString('\n')
 	userAsPenumpang = strings.TrimSpace(userAsPenumpang)
 
 	if strings.ToLower(userAsPenumpang) == "y" {
-		jmlPenumpang -= 1
-
 		penumpang = append(penumpang, model.Penumpang{
 			// TODO: Kode,
 			Nama: controller.AuthData.User.NamaLengkap,
 			NIK:  controller.AuthData.User.NIK,
 		})
-
-		penumpangs := formPenumpang(reader, jmlPenumpang)
-		penumpang = append(penumpang, penumpangs...)
-		goto Complete
-	} else if userAsPenumpang == "" || errUserAsPenumpang != nil {
-		goto FormJumlahPenumpang
 	} else if strings.ToLower(userAsPenumpang) == "n" {
-		penumpangs := formPenumpang(reader, jmlPenumpang)
-		penumpang = append(penumpangs, penumpangs...)
-		goto Complete
+		formDetailPenumpang(reader, jmlPenumpang, &penumpang)
+	} else {
+		utils.PrintMessage("Masukkan y/n", "error")
+		goto FormJumlahPenumpang
 	}
 
-Complete:
+	formDetailPenumpang(reader, jmlPenumpang, &penumpang)
+
 	tiket = model.Tiket{
 		// TODO: Kode
-		User:      model.User{NamaLengkap: penumpang[0].Nama, NIK: penumpang[0].NIK}, // User??
+		User:      model.User{NamaLengkap: penumpang[0].Nama, NIK: penumpang[0].NIK},
 		Rute:      Rute,
 		Price:     jmlPenumpang * Rute.Harga,
 		Penumpang: penumpang,
 		CreatedAt: time.Now(),
 	}
+	oldListTiket := model.ListTiket
 	model.ListTiket = append(model.ListTiket, tiket)
-	if len(model.ListTiket) > 0 {
-		fmt.Println("Tiket berhasil dipesan!")
-
-		for _, t := range model.ListTiket {
-			fmt.Println("List Tiket")
-			fmt.Println("Nama: ", t.User.NamaLengkap)
-			fmt.Println("CreatedAt: ", t.CreatedAt)
-			fmt.Printf("Rute: %s -> %s\n", t.Rute.StasiunAwal, t.Rute.StasiunAkhir)
-			fmt.Println("Price: ", t.Price)
-			fmt.Println("Penumpang: ", t.Penumpang)
-
-		}
+	if len(model.ListTiket) > len(oldListTiket) {
 		utils.ClearScreen()
-		fmt.Println("Tiket Berhasil dipesan atas nama ", tiket.User.NamaLengkap)
+		utils.PrintMessage(fmt.Sprint("Tiket Berhasil dipesan atas nama ", strings.TrimSpace(tiket.User.NamaLengkap)), "success")
 		MenuAwalUser()
 	} else {
-		fmt.Println("Gagal memesan tiket")
-
+		utils.ClearScreen()
+		utils.PrintMessage("Terjadi kesalahan saat memesan tiket!", "error")
+		MenuAwalUser()
 	}
 }
 
-func formPenumpang(reader *bufio.Reader, jmlPenumpang int) []model.Penumpang {
-	var penumpang []model.Penumpang
-	for i := 0; i < jmlPenumpang; i++ {
-	DataPenumpang:
-		fmt.Println("Data Penumpang")
-		fmt.Print("Nama: ")
-		nama, errNama := reader.ReadString('\n')
-		nama = strings.TrimSpace(nama)
-		if nama == "" || errNama != nil {
-			fmt.Println("Nama penumpang tidak boleh kosong")
-			goto DataPenumpang
+func formDetailPenumpang(reader *bufio.Reader, jmlPenumpang int, penumpangs *[]model.Penumpang) {
+	for len(*penumpangs) < jmlPenumpang {
+		fmt.Println()
+		fmt.Printf("Detail Penumpang #%d\n", len(*penumpangs)+1)
+		nama := ""
+		isNamaValid := false
+		for !isNamaValid {
+			fmt.Print("Nama: ")
+			input, err := reader.ReadString('\n')
+			nama = strings.TrimSpace(input)
+			isNamaValid = (nama != "" && err == nil)
+
+			if isNamaValid {
+				isNamaDuplikat := false
+				i := 0
+				for i < len(*penumpangs) && !isNamaDuplikat {
+					isNamaDuplikat = ((*penumpangs)[i].Nama == nama)
+					i++
+				}
+
+				if isNamaDuplikat {
+					fmt.Println("Error: Nama sudah ada")
+					isNamaValid = false
+				}
+			}
+
+			if !isNamaValid && nama == "" {
+				fmt.Println("Error: Nama tidak boleh kosong")
+			}
 		}
 
-		fmt.Print("NIK: ")
-		nik, errNik := reader.ReadString('\n')
-		nik = strings.TrimSpace(nik)
-		if nik == "" || errNik != nil {
-			fmt.Println("Nama penumpang tidak boleh kosong")
-			goto DataPenumpang
+		nik := ""
+		isNIKValid := false
+		for !isNIKValid {
+			fmt.Print("NIK: ")
+			input, err := reader.ReadString('\n')
+			nik = strings.TrimSpace(input)
+
+			isNIKValid = true
+
+			if nik == "" || err != nil {
+				utils.PrintMessage("Error: NIK tidak boleh kosong", "error")
+				isNIKValid = false
+			}
+
+			if isNIKValid && !regexp.MustCompile(`^\d{16}$`).MatchString(nik) {
+				utils.PrintMessage("Error: Format NIK salah", "error")
+				isNIKValid = false
+			}
+
+			if isNIKValid {
+				isDuplikat := false
+				for i := 0; i < len(*penumpangs) && !isDuplikat; i++ {
+					if (*penumpangs)[i].NIK == nik {
+						isDuplikat = true
+					}
+				}
+				if isDuplikat {
+					isNIKValid = false
+					utils.PrintMessage("Error: NIK sudah terdaftar", "error")
+				}
+			}
 		}
 
-		var nikRegex = regexp.MustCompile(`^\d{16}$`)
-		if !nikRegex.MatchString(nik) {
-			utils.PrintMessage("Format NIK salah", "error")
-			goto DataPenumpang
-		}
-
-		penumpang = append(penumpang, model.Penumpang{
+		*penumpangs = append(*penumpangs, model.Penumpang{
 			Nama: nama,
 			NIK:  nik,
 		})
 	}
-
-	return penumpang
 }
 
-// TODO: ShowHistoryTiket()
 func ShowHistoryTiket() {
 	reader := bufio.NewReader(os.Stdin)
-	if len(model.ListTiket) > 0 {
-		utils.Divider("-")
-		for _, tiket := range model.ListTiket {
-			fmt.Println("Nama: ", tiket.User.NamaLengkap)
-			fmt.Printf("Dari %s - %s ke %s - %s\n", tiket.Rute.StasiunAwal.Kota, tiket.Rute.StasiunAwal.Nama, tiket.Rute.StasiunAkhir.Kota, tiket.Rute.StasiunAwal.Nama)
-			fmt.Println("Penumpang: ", tiket.Penumpang)
-			fmt.Println("Dibuat pada: ", tiket.CreatedAt.Format("02/01/2006"))
-			utils.Divider("-")
-		}
+	var mappedTiket []map[string]string
+	var isUserIncluded bool
 
-	Menu:
-		fmt.Print("Kembali ke menu awal (Y/n)")
-		input, err := reader.ReadString('\n')
-		input = strings.TrimSpace(input)
+	ascendingTiketByTimeCreated := utils.SelectionSort(model.ListTiket, func(a, b model.Tiket) bool {
+		return a.CreatedAt.Before(b.CreatedAt)
+	})
 
-		if input == "" || err != nil {
-			goto Menu
-		} else if strings.ToLower(input) == "y" {
-			utils.ClearScreen()
-			MenuAwalUser()
-		} else {
-			goto Menu
-		}
-	} else {
+	if len(model.ListTiket) == 0 {
 		utils.ClearScreen()
-		fmt.Println("Belum ada tiket yang dipesan!")
+		utils.PrintMessage("Belum ada tiket yang dipesan!", "error")
 		MenuAwalUser()
+	}
+
+	for i, tiket := range ascendingTiketByTimeCreated {
+
+		if strings.TrimSpace(tiket.Penumpang[0].Nama) == strings.TrimSpace(controller.AuthData.User.NamaLengkap) {
+			isUserIncluded = true
+		} else {
+			isUserIncluded = false
+		}
+		jmlPenumpang := ""
+
+		if isUserIncluded {
+			jmlPenumpang += fmt.Sprintf("%s (Included)", strconv.Itoa(len(tiket.Penumpang)))
+		} else {
+			jmlPenumpang += fmt.Sprint(strconv.Itoa(len(tiket.Penumpang)))
+		}
+
+		mappedTiket = append(mappedTiket, map[string]string{
+			"No.":               strconv.Itoa(i),
+			"Kode":              "X", // TODO: Kode
+			"Tanggal Pembuatan": tiket.CreatedAt.Format("02/01/2006 15:04"),
+			"Atas Nama":         tiket.User.NamaLengkap,
+			"Dari/Ke":           fmt.Sprintf("%s - %s", tiket.Rute.StasiunAwal.Nama, tiket.Rute.StasiunAkhir.Nama),
+			"Jumlah Penumpang":  jmlPenumpang,
+			"Total Harga":       fmt.Sprint("Rp. ", strconv.Itoa(tiket.Price)),
+		})
+	}
+
+	utils.PrintTable(
+		[]string{"Kode", "Tanggal Pembuatan", "Atas Nama", "Dari/Ke", "Jumlah Penumpang", "Total Harga"},
+		mappedTiket,
+		[]string{"Kode", "Tanggal Pembuatan", "Atas Nama", "Dari/Ke", "Jumlah Penumpang", "Total Harga"},
+		2,
+		"History Pemesanan Tiket",
+	)
+
+Menu: // TODO: Menu
+	fmt.Print("Kembali ke menu awal (Y/n): ")
+	input, err := reader.ReadString('\n')
+	input = strings.TrimSpace(input)
+
+	if input == "" || err != nil {
+		goto Menu
+	} else if strings.ToLower(input) == "y" {
+		utils.ClearScreen()
+		MenuAwalUser()
+	} else {
+		goto Menu
 	}
 }
