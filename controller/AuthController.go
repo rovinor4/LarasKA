@@ -19,12 +19,13 @@ type AuthStruct struct {
 var AuthData AuthStruct
 
 func AuthController() {
+
+	reader := bufio.NewReader(os.Stdin)
 	utils.PrintBoxWithText(60, []string{
 		"Selamat Datang",
 		"LarasKA (Layanan Reservasi Kereta Api)",
 	})
 
-	var pilihan string
 	fmt.Println("[1] Login Sebagai Pengguna")
 	fmt.Println("[2] Daftar Pengguna Baru")
 	fmt.Println("[3] Login Sebagai Admin")
@@ -33,7 +34,8 @@ func AuthController() {
 
 Step1:
 	fmt.Print("Pilih menu : ")
-	_, err := fmt.Scan(&pilihan)
+	pilihan, err := reader.ReadString('\n')
+	pilihan = strings.TrimSpace(pilihan)
 
 	if err != nil || !utils.IsNumeric(pilihan) {
 		utils.PrintMessage(fmt.Sprintf("Pilihan %s tidak ada", pilihan), "error")
@@ -56,9 +58,8 @@ Step1:
 	}
 }
 
-
 func LoginForAdmin() {
-	var username, password string
+	reader := bufio.NewReader(os.Stdin)
 
 	utils.PrintBoxWithText(60, []string{
 		"Login Sebagai Admin",
@@ -67,10 +68,21 @@ func LoginForAdmin() {
 
 Form:
 	fmt.Print("Masukan username : ")
-	fmt.Scan(&username)
+	username, err := reader.ReadString('\n')
+	if username == "" || err != nil {
+		utils.PrintMessage("Username tidak boleh kosong", "error")
+		goto Form
+	}
 
 	fmt.Print("Masukan password : ")
-	fmt.Scan(&password)
+	password, err := reader.ReadString('\n')
+	if password == "" || err != nil {
+		utils.PrintMessage("password tidak boleh kosong", "error")
+		goto Form
+	}
+
+	username = strings.TrimSpace(username)
+	password = strings.TrimSpace(password)
 
 	isNull := true
 	for _, admin := range model.ListAdmin {
@@ -186,6 +198,12 @@ FormNoHp:
 	fmt.Print("Masukan No HP : ")
 	noHp, err := reader.ReadString('\n')
 	noHp = strings.TrimSpace(noHp)
+
+	if noHp == "" || err != nil {
+		utils.PrintMessage("No. Hp wajib diisi", "error")
+		goto FormKelamin
+	}
+
 	if !regexp.MustCompile(`^08[0-9]{8,11}$`).MatchString(noHp) {
 		utils.PrintMessage("Format No HP salah", "error")
 		goto FormNoHp
@@ -207,6 +225,12 @@ FormEmail:
 	fmt.Print("Masukan Email : ")
 	email, err := reader.ReadString('\n')
 	email = strings.TrimSpace(email)
+
+	if email == "" || err != nil {
+		utils.PrintMessage("Email wajib diisi", "error")
+		goto FormKelamin
+	}
+
 	if !regexp.MustCompile(`^[\w.+-]+@[\w-]+\.[\w.-]+$`).MatchString(email) {
 		utils.PrintMessage("Format Email salah", "error")
 		goto FormEmail
@@ -228,6 +252,12 @@ FormPassword:
 	fmt.Print("Masukan Password : ")
 	password, err := reader.ReadString('\n')
 	password = strings.TrimSpace(password)
+
+	if password == "" || err != nil {
+		utils.PrintMessage("Password wajib diisi", "error")
+		goto FormKelamin
+	}
+
 	if len(password) < 6 {
 		utils.PrintMessage("Password minimal 6 karakter", "error")
 		goto FormPassword
@@ -284,11 +314,12 @@ FormPassword:
 			}
 			isNull = false
 			utils.ClearScreen()
+			MenuAwalUser()
 			return
 		}
 	}
 
-	if isNull == true {
+	if isNull {
 		utils.PrintMessage("Username dan password salah", "error")
 		utils.Divider("-")
 		goto FormUsername
