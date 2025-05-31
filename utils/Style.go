@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"reflect"
 	"strconv"
 	"strings"
 )
@@ -168,5 +167,3 @@ func Input(label string, validate func(string) (bool, string)) string {
 
 	return input
 }
-
-
