@@ -1,4 +1,4 @@
-package admin
+package Admin
 
 import (
 	"bufio"
@@ -9,7 +9,6 @@ import (
 	"strconv"
 	"strings"
 )
-
 
 func RuteController() {
 	var reader = bufio.NewReader(os.Stdin)
@@ -62,7 +61,7 @@ Step2:
 			goto Step2
 		}
 
-		Data, Have := utils.FindOne(model.RuteList, model.Rute{Kode: Kode}, func(a, b model.Rute) int {
+		Data, Have, _ := utils.FindOne(model.RuteList, model.Rute{Kode: Kode}, func(a, b model.Rute) int {
 			if a.Kode < b.Kode {
 				return -1
 			} else if a.Kode > b.Kode {
@@ -167,7 +166,7 @@ Step1:
 	}
 
 	//check unique
-	_, HaveKode := utils.FindOne(model.RuteList, model.Rute{Kode: Kode}, func(a, b model.Rute) int {
+	_, HaveKode, _ := utils.FindOne(model.RuteList, model.Rute{Kode: Kode}, func(a, b model.Rute) int {
 		if a.Kode < b.Kode {
 			return -1
 		} else if a.Kode > b.Kode {
@@ -280,7 +279,7 @@ Step6:
 
 	var Kereta model.Kereta
 	var Have bool
-	Kereta, Have = utils.FindOne(model.ListKereta, model.Kereta{Kode: KodeKeretaInt}, func(a, b model.Kereta) int {
+	Kereta, Have, _ = utils.FindOne(model.ListKereta, model.Kereta{Kode: KodeKeretaInt}, func(a, b model.Kereta) int {
 		if a.Kode < b.Kode {
 			return -1
 		} else if a.Kode > b.Kode {
@@ -308,7 +307,7 @@ Step7:
 		goto Step7
 	}
 	var StasiunAwal model.Stasiun
-	StasiunAwal, Have = utils.FindOne(model.ListStasiun, model.Stasiun{IDStasiun: KodeStasiunAwal}, func(a, b model.Stasiun) int {
+	StasiunAwal, Have, _ = utils.FindOne(model.ListStasiun, model.Stasiun{IDStasiun: KodeStasiunAwal}, func(a, b model.Stasiun) int {
 		if a.IDStasiun < b.IDStasiun {
 			return -1
 		} else if a.IDStasiun > b.IDStasiun {
@@ -334,7 +333,7 @@ Step8:
 		goto Step8
 	}
 	var StasiunAkhir model.Stasiun
-	StasiunAkhir, Have = utils.FindOne(model.ListStasiun, model.Stasiun{IDStasiun: KodeStasiunAkhir}, func(a, b model.Stasiun) int {
+	StasiunAkhir, Have, _ = utils.FindOne(model.ListStasiun, model.Stasiun{IDStasiun: KodeStasiunAkhir}, func(a, b model.Stasiun) int {
 		if a.IDStasiun < b.IDStasiun {
 			return -1
 		} else if a.IDStasiun > b.IDStasiun {
@@ -471,7 +470,7 @@ Step5:
 	}
 	var Kereta model.Kereta
 	var Have bool
-	Kereta, Have = utils.FindOne(model.ListKereta, model.Kereta{Kode: KodeKeretaInt}, func(a, b model.Kereta) int {
+	Kereta, Have, _ = utils.FindOne(model.ListKereta, model.Kereta{Kode: KodeKeretaInt}, func(a, b model.Kereta) int {
 		if a.Kode < b.Kode {
 			return -1
 		} else if a.Kode > b.Kode {
@@ -499,7 +498,7 @@ Step6:
 		goto Step6
 	}
 	var StasiunAwal model.Stasiun
-	StasiunAwal, Have = utils.FindOne(model.ListStasiun, model.Stasiun{IDStasiun: KodeStasiunAwal}, func(a, b model.Stasiun) int {
+	StasiunAwal, Have, _ = utils.FindOne(model.ListStasiun, model.Stasiun{IDStasiun: KodeStasiunAwal}, func(a, b model.Stasiun) int {
 		if a.IDStasiun < b.IDStasiun {
 			return -1
 		} else if a.IDStasiun > b.IDStasiun {
@@ -524,7 +523,7 @@ Step7:
 		goto Step7
 	}
 	var StasiunAkhir model.Stasiun
-	StasiunAkhir, Have = utils.FindOne(model.ListStasiun, model.Stasiun{IDStasiun: KodeStasiunAkhir}, func(a, b model.Stasiun) int {
+	StasiunAkhir, Have, _ = utils.FindOne(model.ListStasiun, model.Stasiun{IDStasiun: KodeStasiunAkhir}, func(a, b model.Stasiun) int {
 		if a.IDStasiun < b.IDStasiun {
 			return -1
 		} else if a.IDStasiun > b.IDStasiun {
@@ -566,7 +565,6 @@ func DeleteRute(Rute model.Rute) {
 				utils.ClearScreen()
 				fmt.Println(utils.ColorText("Rute berhasil dihapus.", 30, 42, false))
 				RuteController()
-				break
 			}
 		}
 	} else {

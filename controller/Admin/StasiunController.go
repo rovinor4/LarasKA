@@ -1,340 +1,316 @@
-package admin
+package Admin
 
 import (
-	"bufio"
 	"fmt"
 	"laraska/model"
 	"laraska/utils"
-	"os"
+	"strconv"
 	"strings"
 )
 
 func StasiunController() {
-
-	render := bufio.NewReader(os.Stdin)
-
 	utils.PrintHead("Menu Stasiun")
-	fmt.Println("[1] Daftar Stasiun")
+
+	fmt.Println("[1] Lihat Stasiun")
 	fmt.Println("[2] Tambah Stasiun")
 	fmt.Println("[3] Edit Stasiun")
 	fmt.Println("[4] Hapus Stasiun")
-	fmt.Println("[5] Kembali Ke Menu Utama")
-
+	fmt.Println("[5] Kembali ke Menu Awal")
 	utils.Divider("-")
-	fmt.Print("Pilih menu: ")
 
-Step1:
-	menu, err := render.ReadString('\n')
-	if err != nil {
-		utils.PrintMessage("Terjadi kesalahan saat membaca input", "error")
-		return
-	}
-	menu = strings.TrimSpace(menu)
-	if menu == "" {
-		utils.PrintMessage("Input tidak boleh kosong", "error")
-		goto Step1
-	}
+	InputSelect := utils.Input("Pilih menu: ", func(input string) (bool, string) {
+		if input == "" {
+			return false, "Input tidak boleh kosong"
+		}
+		if !utils.IsNumeric(input) {
+			return false, "Input harus berupa angka"
+		}
 
-	switch menu {
-	case "1":
-		showStasiun()
-	case "2":
-		addStasiun()
-	case "3":
-		updateStasiun()
-	case "4":
-		deleteStasiun()
-	case "5":
-		MenuAwalAdmin()
-	default:
-		utils.PrintMessage("Pilihan tidak valid, silakan coba lagi.", "error")
-		goto Step1
+		if !utils.IsIn(input, []string{"1", "2", "3", "4", "5"}) {
+			return false, "Input tidak valid, silakan pilih menu yang tersedia"
+		}
+
+		return true, ""
+	})
+
+	Select, _ := strconv.Atoi(InputSelect)
+
+	switch Select {
+	case 1:
+		ShowStasiun()
+	case 2:
+		AddStasiun()
+	case 3:
+		EditStasiun()
 	}
 }
 
-func showStasiun() {
+func ShowStasiun() {
 	utils.ClearScreen()
-	render := bufio.NewReader(os.Stdin)
-	var Search, SortColom string
-	var SortAsc bool
 
-Step1:
-	var mapped []map[string]string
-	Data := model.ListStasiun
+	var SearchOn, SortBy, SortCol string
+	Stop := false
 
-	switch {
-	case SortColom == "ID" && SortAsc:
-		Data = utils.InsertionSort(model.ListStasiun, func(a, b model.Stasiun) bool { return a.IDStasiun < b.IDStasiun })
-	case SortColom == "ID" && !SortAsc:
-		Data = utils.InsertionSort(model.ListStasiun, func(a, b model.Stasiun) bool { return a.IDStasiun > b.IDStasiun })
-	case SortColom == "Nama" && SortAsc:
-		Data = utils.InsertionSort(model.ListStasiun, func(a, b model.Stasiun) bool { return a.Nama < b.Nama })
-	case SortColom == "Nama" && !SortAsc:
-		Data = utils.InsertionSort(model.ListStasiun, func(a, b model.Stasiun) bool { return a.Nama > b.Nama })
-	case SortColom == "Kota" && SortAsc:
-		Data = utils.InsertionSort(model.ListStasiun, func(a, b model.Stasiun) bool { return a.Kota < b.Kota })
-	case SortColom == "Kota" && !SortAsc:
-		Data = utils.InsertionSort(model.ListStasiun, func(a, b model.Stasiun) bool { return a.Kota > b.Kota })
-	}
+	for !Stop {
+		var Data []model.Stasiun = model.ListStasiun
 
-	for _, dt := range Data {
-		//searching
-		if Search == "" ||
-			strings.Contains(strings.ToLower(dt.IDStasiun), strings.ToLower(Search)) ||
-			strings.Contains(strings.ToLower(dt.Nama), strings.ToLower(Search)) ||
-			strings.Contains(strings.ToLower(dt.Kota), strings.ToLower(Search)) {
-			mapped = append(mapped, map[string]string{
-				"IDStasiun": dt.IDStasiun,
-				"Nama":      dt.Nama,
-				"Kota":      dt.Kota,
+		if SortBy != "" && SortCol != "" {
+			Data = utils.InsertionSort(model.ListStasiun, func(a, b model.Stasiun) bool {
+				switch SortCol {
+				case "IDStasiun":
+					if SortBy == "asc" {
+						return a.IDStasiun < b.IDStasiun
+					} else {
+						return a.IDStasiun > b.IDStasiun
+					}
+				case "Nama":
+					if SortBy == "asc" {
+						return strings.ToLower(a.Nama) < strings.ToLower(b.Nama)
+					} else {
+						return strings.ToLower(a.Nama) > strings.ToLower(b.Nama)
+					}
+				case "Kota":
+					if SortBy == "asc" {
+						return strings.ToLower(a.Kota) < strings.ToLower(b.Kota)
+					} else {
+						return strings.ToLower(a.Kota) > strings.ToLower(b.Kota)
+					}
+				}
+				return false
 			})
 		}
-	}
 
-	utils.PrintTable(
-		[]string{"ID", "Nama", "Kota"},
-		mapped,
-		[]string{"IDStasiun", "Nama", "Kota"},
-		4,
-		"Daftar Stasiun",
-	)
-
-	fmt.Println(utils.ColorText("[1] Pencarian", 90, 49, false))
-	fmt.Println(utils.ColorText("[2] Sortir", 90, 49, false))
-	fmt.Println(utils.ColorText("[3] Tampilkan Seluruh Data", 90, 49, false))
-	fmt.Println(utils.ColorText("[4] Kembali Ke Menu Kereta", 90, 49, false))
-	utils.Divider("-")
-Step2:
-	fmt.Print("Pilih menu: ")
-	menu, err := render.ReadString('\n')
-	menu = strings.TrimSpace(menu)
-	if err != nil || menu == "" {
-		utils.PrintMessage("Input tidak boleh kosong", "error")
-		goto Step2
-	}
-
-Step3:
-	switch menu {
-	case "1":
-		fmt.Print("Masukkan kata kunci pencarian: ")
-		Search, err = render.ReadString('\n')
-		Search = strings.TrimSpace(Search)
-		if err != nil || Search == "" {
-			utils.PrintMessage("Input tidak boleh kosong", "error")
-			goto Step3
-		}
-		utils.ClearScreen()
-		goto Step1
-	case "2":
-
-		fmt.Print("Masukkan kolom yang ingin disortir (ID/Nama/Kota): ")
-		SortColom, err = render.ReadString('\n')
-		SortColom = strings.TrimSpace(SortColom)
-		if err != nil || SortColom == "" {
-			utils.PrintMessage("Input tidak boleh kosong", "error")
-			goto Step3
-		}
-		if SortColom != "ID" && SortColom != "Nama" && SortColom != "Kota" {
-			utils.PrintMessage("Kolom tidak valid, silakan coba lagi.", "error")
-			goto Step3
-		}
-		fmt.Print("Apakah ingin diurutkan secara ascending? (y/n): ")
-		ascInput, err := render.ReadString('\n')
-		ascInput = strings.TrimSpace(ascInput)
-		if err != nil || (ascInput != "y" && ascInput != "n") {
-			utils.PrintMessage("Input tidak valid, silakan coba lagi.", "error")
-			goto Step3
+		dataAny := make([]map[string]string, 0, len(Data))
+		for _, dt := range Data {
+			if SearchOn == "" || strings.Contains(strings.ToLower(fmt.Sprintf("%s %s %s", dt.IDStasiun, dt.Nama, dt.Kota)), strings.ToLower(SearchOn)) {
+				dataAny = append(dataAny, map[string]string{
+					"IDStasiun": dt.IDStasiun,
+					"Nama":      dt.Nama,
+					"Kota":      dt.Kota,
+				})
+			}
 		}
 
-		if ascInput == "y" {
-			SortAsc = true
-		} else {
-			SortAsc = false
+		utils.PrintTable(
+			[]string{"ID Stasiun", "Nama Stasiun", "Kota"},
+			dataAny,
+			[]string{"IDStasiun", "Nama", "Kota"},
+			4,
+			"Data Stasiun",
+		)
+
+		fmt.Println(utils.ColorText("[1] Pencarian", 90, 49, false))
+		fmt.Println(utils.ColorText("[2] Sorting Data", 90, 49, false))
+		fmt.Println(utils.ColorText("[3] Tampilkan Seluruh Data", 90, 49, false))
+		fmt.Println(utils.ColorText("[0] Kembali", 90, 49, false))
+		utils.Divider("-")
+
+		Input := utils.Input("Masukan nomor menu : ", func(value string) (bool, string) {
+			if value == "" {
+				return false, "Input tidak boleh kosong"
+			}
+
+			if !utils.IsNumeric(value) {
+				return false, "Input harus berupa angka"
+			}
+
+			if !utils.IsIn(value, []string{"0", "1", "2", "3"}) {
+				return false, "Pilihan tidak valid, silakan coba lagi."
+			}
+
+			return true, ""
+
+		})
+
+		Select, _ := strconv.Atoi(Input)
+
+		utils.Divider("-")
+		switch Select {
+		case 1:
+			SearchOn = utils.Input("Masukkan keyword pencarian: ", func(value string) (bool, string) {
+				if value == "" {
+					return false, "Pencarian tidak boleh kosong"
+				}
+				return true, ""
+			})
+			utils.ClearScreen()
+		case 2:
+			SortCol = utils.Input("Masukkan kolom yang ingin diurutkan (IDStasiun, Nama, Kota): ", func(value string) (bool, string) {
+				if value == "" {
+					return false, "Kolom tidak boleh kosong"
+				}
+				if !utils.IsIn(value, []string{"IDStasiun", "Nama", "Kota"}) {
+					return false, "Kolom tidak valid, silakan coba lagi."
+				}
+				return true, ""
+			})
+			SortBy = utils.Input("Masukkan urutan (asc/desc): ", func(value string) (bool, string) {
+				if value == "" {
+					return false, "Urutan tidak boleh kosong"
+				}
+				if !utils.IsIn(strings.ToLower(value), []string{"asc", "desc"}) {
+					return false, "Urutan tidak valid, silakan coba lagi."
+				}
+				return true, ""
+			})
+			utils.ClearScreen()
+		case 3:
+			SearchOn = ""
+			SortBy = ""
+			SortCol = ""
+			utils.ClearScreen()
+		case 0:
+			utils.ClearScreen()
+			Stop = true
+			StasiunController()
+
 		}
-		utils.ClearScreen()
-		goto Step1
-	case "3":
-		Search = ""
-		SortColom = ""
-		SortAsc = false
-		utils.ClearScreen()
-		goto Step1
-	case "4":
-		utils.ClearScreen()
-		StasiunController()
-	default:
-		utils.PrintMessage("Pilihan tidak valid, silakan coba lagi.", "error")
-		goto Step2
 	}
-}
-
-func form(Stasiun model.Stasiun, ForUpdate bool) model.Stasiun {
-	render := bufio.NewReader(os.Stdin)
-
-	format := "Masukkan %s %s: "
-	if ForUpdate {
-		format = "Masukan %s (%s): "
-	}
-
-FormIdStasiun:
-	fmt.Printf(format, "ID Stasiun", Stasiun.IDStasiun)
-	IDStasiun, err := render.ReadString('\n')
-	if err != nil {
-		utils.PrintMessage("Terjadi kesalahan saat membaca input", "error")
-		goto FormIdStasiun
-	}
-
-	IDStasiun = strings.TrimSpace(IDStasiun)
-	if IDStasiun == "" && !ForUpdate {
-		utils.PrintMessage("ID Stasiun tidak boleh kosong", "error")
-		goto FormIdStasiun
-	}
-
-	// urutkan ID Stasiun
-	urut := utils.SelectionSort(model.ListStasiun, func(a, b model.Stasiun) bool {
-		return a.IDStasiun < b.IDStasiun
-	})
-
-	// check binary search
-	_, have := utils.BinaryFindOne(urut, model.Stasiun{IDStasiun: IDStasiun}, func(a, b model.Stasiun) int {
-		if a.IDStasiun < b.IDStasiun {
-			return -1
-		} else if a.IDStasiun > b.IDStasiun {
-			return 1
-		}
-		return 0
-	})
-
-	if have && !ForUpdate {
-		utils.PrintMessage("ID Stasiun sudah ada, silakan coba lagi.", "error")
-		goto FormIdStasiun
-	}
-
-	if !ForUpdate || (ForUpdate && IDStasiun != "") {
-		Stasiun.IDStasiun = IDStasiun
-	}
-
-FormNamaStasiun:
-	fmt.Printf(format, "Nama Stasiun", Stasiun.Nama)
-	NamaStasiun, err := render.ReadString('\n')
-	if err != nil {
-		utils.PrintMessage("Terjadi kesalahan saat membaca input", "error")
-		goto FormNamaStasiun
-	}
-	NamaStasiun = strings.TrimSpace(NamaStasiun)
-	if NamaStasiun == "" && !ForUpdate {
-		utils.PrintMessage("Nama Stasiun tidak boleh kosong", "error")
-		goto FormNamaStasiun
-	}
-	Stasiun.Nama = NamaStasiun
-FormKotaStasiun:
-	fmt.Printf(format, "Kota", Stasiun.Kota)
-	KotaStasiun, err := render.ReadString('\n')
-	if err != nil {
-		utils.PrintMessage("Terjadi kesalahan saat membaca input", "error")
-		goto FormKotaStasiun
-	}
-	KotaStasiun = strings.TrimSpace(KotaStasiun)
-	if KotaStasiun == "" && !ForUpdate {
-		utils.PrintMessage("Kota tidak boleh kosong", "error")
-		goto FormKotaStasiun
-	}
-	Stasiun.Kota = KotaStasiun
-	return Stasiun
 
 }
 
-func addStasiun() {
-	utils.PrintHead("Tambah Stasiun")
-	var stasiun model.Stasiun
-	stasiun = form(stasiun, false)
-
-	// tambahkan stasiun ke list
-	model.ListStasiun = append(model.ListStasiun, stasiun)
+func AddStasiun() {
+	var Stasiun model.Stasiun
 	utils.ClearScreen()
-	utils.PrintMessage("Stasiun berhasil ditambahkan.", "success")
+	utils.PrintHead("Tambah Stasiun")
+
+	Stasiun.IDStasiun = utils.Input("Masukkan ID Stasiun: ", func(value string) (bool, string) {
+		if value == "" {
+			return false, "ID Stasiun tidak boleh kosong"
+		}
+		if len(value) > 3 {
+			return false, "ID Stasiun maksimal 3 karakter"
+		}
+
+		_, Have, _ := utils.FindOne(model.ListStasiun, model.Stasiun{IDStasiun: value}, func(a, b model.Stasiun) int {
+			if a.IDStasiun < b.IDStasiun {
+				return -1
+			} else if a.IDStasiun > b.IDStasiun {
+				return 1
+			}
+			return 0
+		})
+
+		if Have {
+			return false, "ID Stasiun sudah ada, silakan gunakan ID yang lain"
+		}
+
+		return true, ""
+	})
+
+	Stasiun.Nama = utils.Input("Masukkan Nama Stasiun: ", func(value string) (bool, string) {
+		if value == "" {
+			return false, "Nama Stasiun tidak boleh kosong"
+		}
+		return true, ""
+	})
+
+	Stasiun.Kota = utils.Input("Masukkan Kota Stasiun: ", func(value string) (bool, string) {
+		if value == "" {
+			return false, "Kota Stasiun tidak boleh kosong"
+		}
+		return true, ""
+	})
+
+	Next := utils.Input("Apakah Anda yakin ingin menambahkan stasiun ini? (y/n): ", func(value string) (bool, string) {
+		if value == "" {
+			return false, "Input tidak boleh kosong"
+		}
+		if !utils.IsIn(value, []string{"y", "n"}) {
+			return false, "Input tidak valid, silakan coba lagi."
+		}
+		return true, ""
+	})
+
+	utils.ClearScreen()
+	if Next == "y" {
+		model.ListStasiun = append(model.ListStasiun, Stasiun)
+		utils.PrintMessage("Stasiun berhasil ditambahkan", "success")
+	} else {
+		utils.PrintMessage("Stasiun tidak ditambahkan", "warning")
+	}
+
 	StasiunController()
 }
 
-func updateStasiun() {
-	reader := bufio.NewReader(os.Stdin)
+func EditStasiun() {
+	utils.ClearScreen()
 	utils.PrintHead("Edit Stasiun")
-Step1:
-	fmt.Print("Masukkan id stasiun yang ingin diedit: ")
-	IdStasiun, err := reader.ReadString('\n')
-	if err != nil {
-		utils.PrintMessage("Terjadi kesalahan saat membaca input", "error")
-		goto Step1
-	}
-	if IdStasiun == "" || !utils.IsNumeric(IdStasiun) {
-		utils.PrintMessage("ID Stasiun tidak valid", "error")
-		goto Step1
-	}
 
-	IdStasiun = strings.TrimSpace(IdStasiun)
-	DataFinde, have := utils.FindOne(model.ListStasiun, model.Stasiun{IDStasiun: IdStasiun}, func(a, b model.Stasiun) int {
-		if a.IDStasiun < b.IDStasiun {
-			return -1
-		} else if a.IDStasiun > b.IDStasiun {
-			return 1
+	var Index int
+	var Stasiun model.Stasiun
+
+	utils.Input("Masukkan ID Stasiun yang ingin diedit: ", func(value string) (bool, string) {
+		if value == "" {
+			return false, "ID Stasiun tidak boleh kosong"
 		}
-		return 0
+		if len(value) > 3 {
+			return false, "ID Stasiun maksimal 3 karakter"
+		}
+
+		Have := false
+		Stasiun, Have, Index = utils.FindOne(model.ListStasiun, model.Stasiun{IDStasiun: value}, func(a, b model.Stasiun) int {
+			if a.IDStasiun < b.IDStasiun {
+				return -1
+			} else if a.IDStasiun > b.IDStasiun {
+				return 1
+			}
+			return 0
+		})
+
+		if !Have {
+			return false, "ID Stasiun tidak ditemukan, silakan coba lagi."
+		}
+	
+		return true, ""
 	})
 
-	if !have {
-		utils.PrintMessage("ID Stasiun tidak ditemukan", "error")
-		goto Step1
-	}
-
-	Form := form(DataFinde, true)
-
-	for i, st := range model.ListStasiun {
-		if st.IDStasiun == Form.IDStasiun {
-			model.ListStasiun[i] = Form
-			utils.ClearScreen()
-			utils.PrintMessage("Stasiun berhasil diupdate.", "success")
-			StasiunController()
-			break
-		}
-	}
-}
-
-func deleteStasiun() {
-	reader := bufio.NewReader(os.Stdin)
-	utils.PrintHead("Hapus Stasiun")
-Step1:
-	fmt.Println("Masukkan id stasiun yang ingin dihapus: ")
-	IdStasiun, err := reader.ReadString('\n')
-	if err != nil {
-		utils.PrintMessage("Terjadi kesalahan saat membaca input", "error")
-		goto Step1
-	}
-	if IdStasiun == "" || !utils.IsNumeric(IdStasiun) {
-		utils.PrintMessage("ID Stasiun tidak valid", "error")
-		goto Step1
-	}
-	IdStasiun = strings.TrimSpace(IdStasiun)
-	DataFinde, have := utils.FindOne(model.ListStasiun, model.Stasiun{IDStasiun: IdStasiun}, func(a, b model.Stasiun) int {
-		if a.IDStasiun < b.IDStasiun {
-			return -1
-		} else if a.IDStasiun > b.IDStasiun {
-			return 1
-		}
-		return 0
+	utils.ClearScreen()
+	utils.PrintHead("Edit Stasiun")
+	utils.PrintBoxLeft(60, []string{
+		fmt.Sprintf("ID Stasiun: %s", Stasiun.IDStasiun),
+		fmt.Sprintf("Nama Stasiun: %s", Stasiun.Nama),
+		fmt.Sprintf("Kota Stasiun: %s", Stasiun.Kota),
 	})
-	if !have {
-		utils.PrintMessage("ID Stasiun tidak ditemukan", "error")
-		goto Step1
-	}
 
-	for i, st := range model.ListStasiun {
-		if st.IDStasiun == DataFinde.IDStasiun {
-			model.ListStasiun = append(model.ListStasiun[:i], model.ListStasiun[i+1:]...)
-			utils.ClearScreen()
-			utils.PrintMessage("Stasiun berhasil dihapus.", "success")
-			StasiunController()
-			break
+	NamaBaru := utils.Input("Masukkan Nama Stasiun baru (kosongkan untuk tidak mengubah): ", func(value string) (bool, string) {
+		if value == "" {
+			return true, ""
 		}
+		return true, ""
+	})
+
+	KotaBaru := utils.Input("Masukkan Kota Stasiun baru (kosongkan untuk tidak mengubah): ", func(value string) (bool, string) {
+		if value == "" {
+			return true, ""
+		}
+		return true, ""
+	})
+
+	if NamaBaru != "" {
+		Stasiun.Nama = NamaBaru
 	}
 
+	if KotaBaru != "" {
+		Stasiun.Kota = KotaBaru
+	}
+
+	Next := utils.Input("Apakah Anda yakin ingin mengedit stasiun ini? (y/n): ", func(value string) (bool, string) {
+		if value == "" {
+			return false, "Input tidak boleh kosong"
+		}
+		if !utils.IsIn(value, []string{"y", "n"}) {
+			return false, "Input tidak valid, silakan coba lagi."
+		}
+		return true, ""
+	})
+
+	if Next == "y" {
+		model.ListStasiun[Index] = Stasiun
+		utils.PrintMessage("Stasiun berhasil diedit", "success")
+	} else {
+		utils.PrintMessage("Stasiun tidak diedit", "warning")
+	}
+	utils.ClearScreen()
+	StasiunController()
 }

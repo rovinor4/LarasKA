@@ -1,20 +1,17 @@
-package admin
+package Admin
 
 import (
-	"bufio"
 	"fmt"
 	"laraska/controller"
 	"laraska/utils"
 	"os"
-	"strings"
+	"strconv"
 	"time"
 )
 
 func MenuAwalAdmin() {
 
-	var input string
 	now := time.Now()
-	render := bufio.NewReader(os.Stdin)
 
 	utils.PrintBoxWithText(60, []string{
 		"LarasKA (Layanan Reservasi Kereta Api)",
@@ -30,44 +27,38 @@ func MenuAwalAdmin() {
 	fmt.Println("[6] Keluar Akun")
 	fmt.Println("[7] Tutup Program")
 
-PilihMenu:
-	utils.Divider("-")
-	fmt.Print("Pilih menu: ")
-	input, err := render.ReadString('\n')
-	if err != nil {
-		utils.PrintMessage("Terjadi kesalahan saat membaca input", "error")
-		return
-	}
-	input = strings.TrimSpace(input)
-	if input == "" {
-		utils.PrintMessage("Input tidak boleh kosong", "error")
-		goto PilihMenu
-	}
+	InputSelect := utils.Input("Pilih menu: ", func(input string) (bool, string) {
+		if input == "" {
+			return false, "Input tidak boleh kosong"
+		}
+		if !utils.IsNumeric(input) {
+			return false, "Input harus berupa angka"
+		}
 
-	switch input {
-	case "1":
-		utils.ClearScreen()
+		if !utils.IsIn(input, []string{"1", "2", "3", "4", "5", "6", "7"}) {
+			return false, "Input tidak valid, silakan pilih menu yang tersedia"
+		}
+
+		return true, ""
+	})
+
+	Select, _ := strconv.Atoi(InputSelect)
+
+	utils.ClearScreen()
+	switch Select {
+	case 1:
 		StasiunController()
-	case "2":
-		utils.ClearScreen()
+	case 2:
 		KeretaController()
-	case "3":
-		utils.ClearScreen()
+	case 3:
 		RuteController()
-	case "4":
-		utils.ClearScreen()
-	case "5":
-		utils.ClearScreen()
-	case "6":
-		utils.ClearScreen()
+	case 4:
+	case 5:
+	case 6:
 		controller.AuthController()
-	case "7":
+	case 7:
 		os.Exit(1)
 		return
-	default:
-		utils.ClearScreen()
-		utils.PrintMessage("Menu tidak ada", "error")
-		goto PilihMenu
 	}
 
 }

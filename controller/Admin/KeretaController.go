@@ -1,18 +1,14 @@
-package admin
+package Admin
 
 import (
-	"bufio"
 	"fmt"
 	"laraska/model"
 	"laraska/utils"
-	"os"
 	"strconv"
 	"strings"
 )
 
 func KeretaController() {
-	var choice string
-
 	utils.PrintHead("Menu Kereta")
 
 	fmt.Println("[1] Tampilkan Data Kereta")
@@ -22,169 +18,182 @@ func KeretaController() {
 	fmt.Println("[5] Kembali Ke Menu Awal")
 	utils.Divider("-")
 
-	fmt.Print("Pilih menu: ")
-	_, err := fmt.Scan(&choice)
-	if err != nil || !utils.IsNumeric(choice) {
-		utils.PrintMessage("Pilihan tidak valid, silakan coba lagi.", "error")
-		KeretaController()
-		return
+	Input := utils.Input("Masukan nomor menu : ", func(value string) (bool, string) {
+		if value == "" {
+			return false, "Input tidak boleh kosong"
+		}
+
+		if !utils.IsNumeric(value) {
+			return false, "Input harus berupa angka"
+		}
+
+		if !utils.IsIn(value, []string{"1", "2", "3", "4", "5"}) {
+			return false, "Pilihan tidak valid, silakan coba lagi."
+		}
+
+		return true, ""
+	})
+
+	Select, _ := strconv.Atoi(Input)
+
+	switch Select {
+	case 1:
+		showKereta()
+	case 2:
+		addKereta()
+	case 3:
+		updateKereta()
+	case 4:
+		deleteKereta()
+	case 5:
+		utils.ClearScreen()
+		MenuAwalAdmin()
 	}
 
-	switch {
-	case choice == "1":
-		showKereta()
-	case choice == "2":
-		addKereta()
-	case choice == "3":
-		updateKereta()
-	case choice == "4":
-		deleteKereta()
-	case choice == "5":
-		MenuAwalAdmin()
-	default:
-		utils.PrintMessage("Pilihan tidak valid, silakan coba lagi.", "error")
-		KeretaController()
-	}
 }
 
 func showKereta() {
-
-	var searchOn, sortOn, sortType string
-
 	utils.ClearScreen()
-	reader := bufio.NewReader(os.Stdin)
-Step1:
-	var menu string
-	var mapped []map[string]string
-	Data := model.ListKereta
 
-	switch {
-	case sortOn == "" && sortType == "":
-		Data = utils.InsertionSort(Data, func(a, b model.Kereta) bool { return a.Kode < b.Kode })
-	case sortOn == "Kode" && sortType == "asc":
-		Data = utils.InsertionSort(Data, func(a, b model.Kereta) bool { return a.Kode < b.Kode })
-	case sortOn == "Kode" && sortType == "desc":
-		Data = utils.InsertionSort(Data, func(a, b model.Kereta) bool { return a.Kode > b.Kode })
-	case sortOn == "Nama" && sortType == "asc":
-		Data = utils.InsertionSort(Data, func(a, b model.Kereta) bool { return strings.ToLower(a.Nama) < strings.ToLower(b.Nama) })
-	case sortOn == "Nama" && sortType == "desc":
-		Data = utils.InsertionSort(Data, func(a, b model.Kereta) bool { return strings.ToLower(a.Nama) > strings.ToLower(b.Nama) })
-	case sortOn == "Kelas" && sortType == "asc":
-		Data = utils.InsertionSort(Data, func(a, b model.Kereta) bool { return strings.ToLower(a.Kelas) < strings.ToLower(b.Kelas) })
-	case sortOn == "Kelas" && sortType == "desc":
-		Data = utils.InsertionSort(Data, func(a, b model.Kereta) bool { return strings.ToLower(a.Kelas) > strings.ToLower(b.Kelas) })
-	}
+	var SearchOn, SortBy, SortCol string
 
-	for _, dt := range Data {
-		if searchOn == "" || strings.Contains(strings.ToLower(fmt.Sprintf("%s %s %d", dt.Nama, dt.Kelas, dt.Kode)), strings.ToLower(searchOn)) {
-			mapped = append(mapped, map[string]string{
-				"Kode":  strconv.Itoa(dt.Kode),
-				"Nama":  dt.Nama,
-				"Kelas": dt.Kelas,
+	Stop := false
+
+	for !Stop {
+		var Data []model.Kereta = model.ListKereta
+
+		if SortBy != "" && SortCol != "" {
+			Data = utils.InsertionSort(model.ListKereta, func(a, b model.Kereta) bool {
+				switch SortCol {
+				case "Kode":
+					if SortBy == "asc" {
+						return a.Kode < b.Kode
+					} else {
+						return a.Kode > b.Kode
+					}
+				case "Nama":
+					if SortBy == "asc" {
+						return strings.ToLower(a.Nama) < strings.ToLower(b.Nama)
+					} else {
+						return strings.ToLower(a.Nama) > strings.ToLower(b.Nama)
+					}
+				case "Kelas":
+					if SortBy == "asc" {
+						return strings.ToLower(a.Kelas) < strings.ToLower(b.Kelas)
+					} else {
+						return strings.ToLower(a.Kelas) > strings.ToLower(b.Kelas)
+					}
+				}
+				return false
 			})
 		}
 
-	}
-
-	utils.PrintTable(
-		[]string{"Kode", "Nama", "Kelas"},
-		mapped,
-		[]string{"Kode", "Nama", "Kelas"},
-		4,
-		"Data Kereta",
-	)
-
-	fmt.Println(utils.ColorText("[1] Pencarian", 90, 49, false))
-	fmt.Println(utils.ColorText("[2] Tampilkan Seluruh Data", 90, 49, false))
-	fmt.Println(utils.ColorText("[3] Sorting Data", 90, 49, false))
-	fmt.Println(utils.ColorText("[0] Kembali", 90, 49, false))
-
-	utils.Divider("-")
-Step2:
-	fmt.Print("Masukan nomor menu : ")
-	_, err := fmt.Scan(&menu)
-	if err != nil || !utils.IsNumeric(menu) {
-		utils.ClearScreen()
-		utils.PrintMessage("Pilihan tidak valid, silakan coba lagi.", "error")
-	}
-
-Step3:
-	switch menu {
-	case "1":
-		fmt.Print("Masukan keyword pencarian : ")
-		search, _ := reader.ReadString('\n')
-		searchOn = strings.TrimSpace(search)
-
-		if searchOn == "" {
-			utils.PrintMessage("Pencarian Tidak Boleh Kosong", "error")
-			goto Step3
+		dataAny := make([]map[string]string, 0, len(Data))
+		for _, dt := range Data {
+			if SearchOn == "" || strings.Contains(strings.ToLower(fmt.Sprintf("%s %s %d", dt.Nama, dt.Kelas, dt.Kode)), strings.ToLower(SearchOn)) {
+				dataAny = append(dataAny, map[string]string{
+					"Kode":  strconv.Itoa(dt.Kode),
+					"Nama":  dt.Nama,
+					"Kelas": dt.Kelas,
+				})
+			}
 		}
 
-		utils.ClearScreen()
-		goto Step1
+		utils.PrintTable(
+			[]string{"Kode", "Nama", "Kelas"},
+			dataAny,
+			[]string{"Kode", "Nama", "Kelas"},
+			4,
+			"Data Kereta",
+		)
 
-	case "2":
-		searchOn = ""
-		sortOn = ""
-		sortType = ""
-		utils.ClearScreen()
-		goto Step3
-	case "3":
-		fmt.Print("Pilih kolom untuk sort (Kode/Nama/Kelas) : ")
-		fmt.Scan(&sortOn)
-		if sortOn != "Kode" && sortOn != "Nama" && sortOn != "Kelas" {
-			utils.PrintMessage("Pastikan kamu memilih (Kode/Nama/Kelas)", "error")
-			goto Step3
+		fmt.Println(utils.ColorText("[1] Pencarian", 90, 49, false))
+		fmt.Println(utils.ColorText("[2] Sorting Data", 90, 49, false))
+		fmt.Println(utils.ColorText("[3] Tampilkan Seluruh Data", 90, 49, false))
+		fmt.Println(utils.ColorText("[0] Kembali", 90, 49, false))
+		utils.Divider("-")
+
+		Input := utils.Input("Masukan nomor menu : ", func(value string) (bool, string) {
+			if value == "" {
+				return false, "Input tidak boleh kosong"
+			}
+
+			if !utils.IsNumeric(value) {
+				return false, "Input harus berupa angka"
+			}
+
+			if !utils.IsIn(value, []string{"0", "1", "2", "3"}) {
+				return false, "Pilihan tidak valid, silakan coba lagi."
+			}
+
+			return true, ""
+		})
+
+		Select, _ := strconv.Atoi(Input)
+		switch Select {
+		case 1:
+			SearchOn = utils.Input("Masukkan keyword pencarian: ", func(value string) (bool, string) {
+				if value == "" {
+					return false, "Pencarian tidak boleh kosong"
+				}
+				return true, ""
+			})
+			utils.ClearScreen()
+		case 2:
+			SortCol = utils.Input("Masukkan kolom yang ingin diurutkan (Kode, Nama, Kelas): ", func(value string) (bool, string) {
+				if value == "" {
+					return false, "Kolom tidak boleh kosong"
+				}
+				if !utils.IsIn(value, []string{"Kode", "Nama", "Kelas"}) {
+					return false, "Kolom tidak valid, silakan coba lagi."
+				}
+				return true, ""
+			})
+			SortBy = utils.Input("Masukkan urutan (asc/desc): ", func(value string) (bool, string) {
+				if value == "" {
+					return false, "Urutan tidak boleh kosong"
+				}
+				if !utils.IsIn(strings.ToLower(value), []string{"asc", "desc"}) {
+					return false, "Urutan tidak valid, silakan coba lagi."
+				}
+				return true, ""
+			})
+			utils.ClearScreen()
+		case 3:
+			SearchOn = ""
+			SortBy = ""
+			SortCol = ""
+			utils.ClearScreen()
+		case 0:
+			utils.ClearScreen()
+			Stop = true
+			KeretaController()
 		}
-		fmt.Print("Pilih jenis sort (asc/desc) : ")
-		fmt.Scan(&sortType)
-
-		if sortType != "asc" && sortType != "desc" {
-			utils.PrintMessage("Pastikan kamu memilih (asc/desc)", "error")
-			goto Step3
-		}
-
-		utils.ClearScreen()
-		goto Step1
-	case "4":
-		utils.ClearScreen()
-		KeretaController()
-	default:
-		utils.PrintMessage("Pilihan tidak valid, silakan coba lagi.", "error")
-		goto Step2
 	}
 
 }
 
-func formKereta(Kereta model.Kereta, Update bool) model.Kereta {
-	var kode int
+func addKereta() {
+	utils.ClearScreen()
+	var Kereta model.Kereta
 
-	render := bufio.NewReader(os.Stdin)
-	utils.PrintHead("Form Kereta")
+	utils.PrintHead("Tambah Data Kereta")
+	InputKode := utils.Input("Masukan Kode Kereta : ", func(input string) (bool, string) {
 
-	format := "Masukkan %s %s: "
-	if Update {
-		format = "Masukkan %s (%s): "
-	}
+		if input == "" {
+			return false, "Input tidak boleh kosong"
+		}
 
-Step1:
-	fmt.Printf(format, "Kode Kereta", Kereta.Kode)
-	kodeInput, err := render.ReadString('\n')
-	kodeInput = strings.TrimSpace(kodeInput)
+		if !utils.IsNumeric(input) {
+			return false, "Input harus berupa angka"
+		}
 
-	if !Update && (err != nil || kodeInput == "") {
-		utils.PrintMessage("Input tidak boleh kosong", "error")
-		goto Step1
-	}
+		SortingData := utils.InsertionSort(model.ListKereta, func(a, b model.Kereta) bool {
+			return a.Kode < b.Kode
+		})
 
-	kode, err = strconv.Atoi(kodeInput)
-	if !Update && (err != nil || kode <= 0) {
-		utils.PrintMessage("Kode harus berupa angka positif", "error")
-		goto Step1
-	}
-
-	if !Update && kodeInput != "" {
-		_, uniq := utils.FindOne(model.ListKereta, model.Kereta{Kode: kode}, func(a, b model.Kereta) int {
+		Kode, _ := strconv.Atoi(input)
+		_, Have, _ := utils.BinaryFindOne(SortingData, model.Kereta{Kode: Kode}, func(a, b model.Kereta) int {
 			if a.Kode < b.Kode {
 				return -1
 			} else if a.Kode > b.Kode {
@@ -192,124 +201,211 @@ Step1:
 			}
 			return 0
 		})
-		Kereta.Kode = kode
-		if uniq {
-			utils.PrintMessage("Kode Kereta sudah ada, silakan coba lagi.", "error")
-			goto Step1
+
+		if Have {
+			return false, "Kode kereta sudah ada, silakan masukkan kode yang berbeda."
 		}
-	}
 
-Step2:
-	fmt.Printf(format, "Nama Kereta", Kereta.Nama)
-	namaInput, err := render.ReadString('\n')
-	namaInput = strings.TrimSpace(namaInput)
-	if !Update && (err != nil || namaInput == "") {
-		utils.PrintMessage("Input tidak boleh kosong", "error")
-		goto Step2
-	}
-	if !Update && namaInput != "" {
-		Kereta.Nama = namaInput
-	}
-Step3:
-	fmt.Printf(format, "Kelas Kereta", Kereta.Kelas)
-	kelasInput, err := render.ReadString('\n')
-	kelasInput = strings.TrimSpace(kelasInput)
-	if !Update && (err != nil || kelasInput == "") {
-		utils.PrintMessage("Input tidak boleh kosong", "error")
-		goto Step3
-	}
-	if !Update && kelasInput != "" {
-		Kereta.Kelas = kelasInput
-	}
+		return true, ""
+	})
 
-	return model.Kereta{
-		Kode:  Kereta.Kode,
-		Nama:  Kereta.Nama,
-		Kelas: Kereta.Kelas,
-	}
+	Kereta.Kode, _ = strconv.Atoi(InputKode)
 
-}
+	Kereta.Nama = utils.Input("Masukan Nama Kereta : ", func(input string) (bool, string) {
+		if input == "" {
+			return false, "Input tidak boleh kosong"
+		}
 
-func addKereta() {
-	utils.PrintHead("Tambah Data Kereta")
-	kereta := formKereta(model.Kereta{}, false)
-	model.ListKereta = append(model.ListKereta, kereta)
+		return true, ""
+	})
+
+	Kereta.Kelas = utils.Input("Masukan Kelas Kereta (Ekonomi, Bisnis, Eksekutif) : ", func(input string) (bool, string) {
+		if input == "" {
+			return false, "Input tidak boleh kosong"
+		}
+
+		if !utils.IsIn(strings.ToLower(input), []string{"ekonomi", "bisnis", "eksekutif"}) {
+			return false, "Input hanya Ekonomi, Bisnis, Eksekutif"
+		}
+
+		return true, ""
+	})
+
+	Approve := utils.Input("Apakah data kereta sudah benar? (y/n): ", func(input string) (bool, string) {
+		if input == "" {
+			return false, "Input tidak boleh kosong"
+		}
+
+		if !utils.IsIn(strings.ToLower(input), []string{"y", "n"}) {
+			return false, "Input hanya y atau n"
+		}
+		return true, ""
+	})
+
 	utils.ClearScreen()
-	utils.PrintMessage("Kereta berhasil ditambahkan.", "success")
+	Approve = strings.ToLower(Approve)
+	if Approve == "n" {
+		utils.PrintMessage("Tambah kereta dibatalkan.", "warning")
+	} else {
+		model.ListKereta = append(model.ListKereta, Kereta)
+		utils.PrintMessage("Tambah Kereta berhasil ditambahkan.", "success")
+	}
+
 	KeretaController()
 }
 
 func updateKereta() {
-	var kode int
+	utils.ClearScreen()
 	utils.PrintHead("Edit Data Kereta")
-Step1:
-	fmt.Print("Masukan Kode Kereta yang ingin diubah: ")
-	_, err := fmt.Scan(&kode)
-	if err != nil || kode <= 0 {
-		utils.PrintMessage("Kode tidak valid, silakan coba lagi.", "error")
-		goto Step1
-	}
-	data, has := utils.FindOne(model.ListKereta, model.Kereta{Kode: kode}, func(a, b model.Kereta) int {
-		if a.Kode < b.Kode {
-			return -1
-		} else if a.Kode > b.Kode {
-			return 1
+
+	var Index int
+	var Data model.Kereta
+
+	utils.Input("Masukan Kode Kereta yang ingin diubah : ", func(input string) (bool, string) {
+		var Have bool
+		if input == "" {
+			return false, "Input tidak boleh kosong"
 		}
-		return 0
+
+		if !utils.IsNumeric(input) {
+			return false, "Input harus berupa angka"
+		}
+
+		SortingData := utils.InsertionSort(model.ListKereta, func(a, b model.Kereta) bool {
+			return a.Kode < b.Kode
+		})
+
+		Kode, _ := strconv.Atoi(input)
+		Data, Have, Index = utils.BinaryFindOne(SortingData, model.Kereta{Kode: Kode}, func(a, b model.Kereta) int {
+			if a.Kode < b.Kode {
+				return -1
+			} else if a.Kode > b.Kode {
+				return 1
+			}
+			return 0
+		})
+
+		if !Have {
+			return false, "Kode kereta tidak ditemukan, silakan masukkan kode yang valid."
+		}
+
+		return true, ""
 	})
 
-	if !has {
-		utils.PrintMessage("Kode kereta tidak ditemukan, silakan coba lagi.", "error")
-		goto Step1
+	utils.ClearScreen()
+	utils.PrintHead("Edit Data Kereta")
+	utils.PrintBoxLeft(60, []string{
+		fmt.Sprintf("Kode Kereta: %d", Data.Kode),
+		fmt.Sprintf("Nama Kereta: %s", Data.Nama),
+		fmt.Sprintf("Kelas Kereta: %s", Data.Kelas),
+	})
+
+	Data.Nama = utils.Input("Masukan Nama Kereta : ", func(input string) (bool, string) {
+		return true, ""
+	})
+
+	if Data.Nama == "" {
+		Data.Nama = model.ListKereta[Index].Nama
 	}
 
-	kereta := formKereta(data, true)
-	for i, kt := range model.ListKereta {
-		if kt.Kode == kode {
-			model.ListKereta[i] = kereta
-			utils.ClearScreen()
-			fmt.Println("Kereta berhasil diubah.")
-			KeretaController()
-			return
+	Data.Kelas = utils.Input("Masukan Kelas Kereta (Ekonomi, Bisnis, Eksekutif) : ", func(input string) (bool, string) {
+		if input != "" && !utils.IsIn(strings.ToLower(input), []string{"ekonomi", "bisnis", "eksekutif"}) {
+			return false, "Input hanya Ekonomi, Bisnis, Eksekutif"
 		}
+
+		return true, ""
+	})
+
+	if Data.Kelas == "" {
+		Data.Kelas = model.ListKereta[Index].Kelas
 	}
-	utils.PrintMessage("Terjadi kesalahan saat mengubah data kereta.", "error")
+
+	Approve := utils.Input("Apakah data kereta sudah benar? (y/n): ", func(input string) (bool, string) {
+		if input == "" {
+			return false, "Input tidak boleh kosong"
+		}
+
+		if !utils.IsIn(strings.ToLower(input), []string{"y", "n"}) {
+			return false, "Input hanya y atau n"
+		}
+		return true, ""
+	})
+
 	utils.ClearScreen()
-	updateKereta()
-	return
+	Approve = strings.ToLower(Approve)
+	if Approve == "n" {
+		utils.PrintMessage("Edit kereta dibatalkan.", "warning")
+	} else {
+		model.ListKereta[Index] = Data
+		utils.PrintMessage("Edit Kereta berhasil diubah.", "success")
+	}
+	KeretaController()
+
 }
 
 func deleteKereta() {
-	var kode int
+	utils.ClearScreen()
 	utils.PrintHead("Hapus Data Kereta")
-Step1:
-	fmt.Print("Masukan Kode Kereta yang ingin dihapus: ")
-	_, err := fmt.Scan(&kode)
-	if err != nil || kode <= 0 {
-		utils.PrintMessage("Kode tidak valid, silakan coba lagi.", "error")
-		goto Step1
-	}
-	_, has := utils.FindOne(model.ListKereta, model.Kereta{Kode: kode}, func(a, b model.Kereta) int {
-		if a.Kode < b.Kode {
-			return -1
-		} else if a.Kode > b.Kode {
-			return 1
-		}
-		return 0
-	})
-	if !has {
-		utils.PrintMessage("Kode kereta tidak ditemukan, silakan coba lagi.", "error")
-		goto Step1
-	}
-	for i, kt := range model.ListKereta {
-		if kt.Kode == kode {
-			model.ListKereta = append(model.ListKereta[:i], model.ListKereta[i+1:]...)
-			utils.ClearScreen()
-			utils.PrintMessage("Kereta berhasil dihapus.", "success")
-			KeretaController()
-			return
-		}
-	}
-	utils.PrintMessage("Terjadi kesalahan saat menghapus data", "error")
 
+	var Index int
+	var Data model.Kereta
+
+	utils.Input("Masukan Kode Kereta yang ingin dihapus : ", func(input string) (bool, string) {
+		var Have bool
+		if input == "" {
+			return false, "Input tidak boleh kosong"
+		}
+
+		if !utils.IsNumeric(input) {
+			return false, "Input harus berupa angka"
+		}
+
+		SortingData := utils.InsertionSort(model.ListKereta, func(a, b model.Kereta) bool {
+			return a.Kode < b.Kode
+		})
+
+		Kode, _ := strconv.Atoi(input)
+		Data, Have, Index = utils.BinaryFindOne(SortingData, model.Kereta{Kode: Kode}, func(a, b model.Kereta) int {
+			if a.Kode < b.Kode {
+				return -1
+			} else if a.Kode > b.Kode {
+				return 1
+			}
+			return 0
+		})
+
+		if !Have {
+			return false, "Kode kereta tidak ditemukan, silakan masukkan kode yang valid."
+		}
+
+		return true, ""
+	})
+
+	utils.ClearScreen()
+	utils.PrintHead("Hapus Data Kereta")
+	utils.PrintBoxLeft(60, []string{
+		fmt.Sprintf("Kode Kereta: %d", Data.Kode),
+		fmt.Sprintf("Nama Kereta: %s", Data.Nama),
+		fmt.Sprintf("Kelas Kereta: %s", Data.Kelas),
+	})
+
+	Approve := utils.Input("Apakah Anda yakin ingin menghapus data ini? (y/n): ", func(input string) (bool, string) {
+		if input == "" {
+			return false, "Input tidak boleh kosong"
+		}
+
+		if !utils.IsIn(strings.ToLower(input), []string{"y", "n"}) {
+			return false, "Input hanya y atau n"
+		}
+		return true, ""
+	})
+
+	utils.ClearScreen()
+	if strings.ToLower(Approve) == "n" {
+		utils.PrintMessage("Hapus kereta dibatalkan.", "warning")
+	} else {
+		model.ListKereta = append(model.ListKereta[:Index], model.ListKereta[Index+1:]...)
+		utils.PrintMessage("Hapus Kereta berhasil dihapus.", "success")
+	}
+	KeretaController()
 }

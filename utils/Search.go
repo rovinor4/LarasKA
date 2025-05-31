@@ -13,43 +13,51 @@ func FindMany[T any](data []T, target T, cmp func(a, b T) int) []T {
 func BinaryFindMany[T any](data []T, target T, cmp func(a, b T) int) []T {
 	result := []T{}
 	left, right := 0, len(data)-1
-	for left <= right {
-		mid := (left + right) / 2
+	found := false
+	mid := 0
+
+	for left <= right && !found {
+		mid = (left + right) / 2
 		cmpRes := cmp(data[mid], target)
 		if cmpRes == 0 {
-			for i := mid; i >= left && cmp(data[i], target) == 0; i-- {
-				result = append(result, data[i])
-			}
-			for i := mid + 1; i <= right && cmp(data[i], target) == 0; i++ {
-				result = append(result, data[i])
-			}
-			break
+			found = true
 		} else if cmpRes < 0 {
 			left = mid + 1
 		} else {
 			right = mid - 1
 		}
 	}
+
+	if found {
+		for i := mid; i >= 0 && cmp(data[i], target) == 0; i-- {
+			result = append(result, data[i])
+		}
+
+		for i := mid + 1; i < len(data) && cmp(data[i], target) == 0; i++ {
+			result = append(result, data[i])
+		}
+	}
+
 	return result
 }
 
-func FindOne[T any](data []T, target T, cmp func(a, b T) int) (T, bool) {
-	for _, v := range data {
+func FindOne[T any](data []T, target T, cmp func(a, b T) int) (T, bool, int) {
+	for i, v := range data {
 		if cmp(v, target) == 0 {
-			return v, true
+			return v, true, i
 		}
 	}
 	var zero T
-	return zero, false
+	return zero, false, -1
 }
 
-func BinaryFindOne[T any](data []T, target T, cmp func(a, b T) int) (T, bool) {
+func BinaryFindOne[T any](data []T, target T, cmp func(a, b T) int) (T, bool, int) {
 	left, right := 0, len(data)-1
 	for left <= right {
 		mid := (left + right) / 2
 		cmpRes := cmp(data[mid], target)
 		if cmpRes == 0 {
-			return data[mid], true
+			return data[mid], true, mid
 		} else if cmpRes < 0 {
 			left = mid + 1
 		} else {
@@ -57,6 +65,5 @@ func BinaryFindOne[T any](data []T, target T, cmp func(a, b T) int) (T, bool) {
 		}
 	}
 	var zero T
-	return zero, false
+	return zero, false, -1
 }
-
