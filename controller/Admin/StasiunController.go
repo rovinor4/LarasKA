@@ -315,7 +315,7 @@ func EditStasiun() {
 	StasiunController()
 }
 
-func TableStasiun() {
+func TableStasiun(judul string) {
 	MappingStasiun := make([]map[string]string, 0, len(model.ListStasiun))
 
 	for _, stasiun := range model.ListStasiun {
@@ -331,11 +331,11 @@ func TableStasiun() {
 		MappingStasiun,
 		[]string{"IDStasiun", "Nama", "Kota"},
 		4,
-		"Data Stasiun",
+		judul,
 	)
 }
 
-func TableStasiunWithData(Data []model.Stasiun) {
+func TableStasiunWithData(Data []model.Stasiun, Label string) {
 	MappingStasiun := make([]map[string]string, 0, len(Data))
 
 	for _, stasiun := range Data {
@@ -351,6 +351,6 @@ func TableStasiunWithData(Data []model.Stasiun) {
 		MappingStasiun,
 		[]string{"IDStasiun", "Nama", "Kota"},
 		4,
-		"Data Stasiun",
+		Label,
 	)
 }

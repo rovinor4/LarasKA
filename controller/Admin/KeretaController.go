@@ -411,7 +411,7 @@ func deleteKereta() {
 }
 
 
-func TableKereta() {
+func TableKereta(Judul string) {
 	MappingKereta := make([]map[string]string, 0, len(model.ListStasiun))
 
 	for _, kereta := range model.ListKereta {
@@ -427,6 +427,6 @@ func TableKereta() {
 		MappingKereta,
 		[]string{"Kode", "Nama", "Kelas"},
 		4,
-		"Data Kereta",
+		Judul,
 	)
 }

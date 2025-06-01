@@ -40,7 +40,7 @@ func RuteController() {
 		ShowRute()
 	case 2:
 		AddRute()
-		case 3:
+	case 3:
 		DeleteRute()
 	}
 
@@ -169,7 +169,7 @@ func ShowRute() {
 				return false, "Input harus berupa angka"
 			}
 
-			if !utils.IsIn(value, []string{"0", "1", "2", "3","4"}) {
+			if !utils.IsIn(value, []string{"0", "1", "2", "3", "4"}) {
 				return false, "Pilihan tidak valid, silakan coba lagi."
 			}
 
@@ -398,7 +398,7 @@ func AddRute() {
 		return true, ""
 	})
 
-	TableKereta()
+	TableKereta("Pilih Kereta untuk Rute ini")
 
 	utils.Input("Masukkan Kode Kereta: ", func(value string) (bool, string) {
 		if value == "" {
@@ -448,7 +448,7 @@ func AddRute() {
 		return true, ""
 	})
 
-	TableStasiun()
+	TableStasiun("Data Stasiun")
 
 	Rute.RuteBerhenti = make([]model.RuteBerhenti, JumlahRuteBerhenti)
 
