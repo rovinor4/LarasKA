@@ -1,7 +1,5 @@
 package model
 
-import "time"
-
 type Penumpang struct {
 	Kode        string
 	Nama        string
@@ -16,7 +14,6 @@ type Tiket struct {
 	Price        int
 	User         User
 	Penumpang    []Penumpang
-	CreatedAt    time.Time
 	StasiunAwal  Stasiun
 	StasiunAkhir Stasiun
 }
