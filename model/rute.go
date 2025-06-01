@@ -5,7 +5,6 @@ import "time"
 type Rute struct {
 	Kode         string
 	Nama         string
-	HargaTetap   bool
 	Harga        int
 	Gerbong      int
 	Kereta       Kereta
@@ -21,12 +20,11 @@ type RuteBerhenti struct {
 	StasiunAkhir Stasiun
 }
 
-var RuteList []Rute = []Rute{
+var ListRute []Rute = []Rute{
 	{
 		Kode:         "A305",
 		Nama:         "Jalur A",
 		Harga:        10000,
-		HargaTetap:   true,
 		Gerbong:      5,
 		Kereta:       ListKereta[1],
 		StasiunAwal:  ListStasiun[8],
@@ -62,7 +60,6 @@ var RuteList []Rute = []Rute{
 		Kode:         "B3J9",
 		Nama:         "Jalur B",
 		Harga:        5000,
-		HargaTetap:   true,
 		Gerbong:      4,
 		Kereta:       ListKereta[6],
 		StasiunAwal:  ListStasiun[8],
@@ -98,7 +95,6 @@ var RuteList []Rute = []Rute{
 		Kode:         "C4L0",
 		Nama:         "Jalur C",
 		Harga:        12500,
-		HargaTetap:   true,
 		Gerbong:      6,
 		Kereta:       ListKereta[0],
 		StasiunAwal:  ListStasiun[14],
@@ -128,7 +124,6 @@ var RuteList []Rute = []Rute{
 		Kode:         "D5R7",
 		Nama:         "Jalur D",
 		Harga:        7500,
-		HargaTetap:   true,
 		Gerbong:      4,
 		Kereta:       ListKereta[4],
 		StasiunAwal:  ListStasiun[24],
@@ -158,7 +153,6 @@ var RuteList []Rute = []Rute{
 		Kode:         "E84T",
 		Nama:         "Jalur E",
 		Harga:        21000,
-		HargaTetap:   true,
 		Gerbong:      5,
 		Kereta:       ListKereta[7],
 		StasiunAwal:  ListStasiun[33],
@@ -194,7 +188,6 @@ var RuteList []Rute = []Rute{
 		Kode:         "F305",
 		Nama:         "Jalur F",
 		Harga:        12000,
-		HargaTetap:   true,
 		Gerbong:      6,
 		Kereta:       ListKereta[1],
 		StasiunAwal:  ListStasiun[31],
@@ -224,7 +217,6 @@ var RuteList []Rute = []Rute{
 		Kode:         "G8W9",
 		Nama:         "Jalur G",
 		Harga:        10000,
-		HargaTetap:   true,
 		Gerbong:      5,
 		Kereta:       ListKereta[2],
 		StasiunAwal:  ListStasiun[16],
@@ -260,7 +252,6 @@ var RuteList []Rute = []Rute{
 		Kode:         "H2UI",
 		Nama:         "Jalur H",
 		Harga:        7000,
-		HargaTetap:   true,
 		Gerbong:      5,
 		Kereta:       ListKereta[3],
 		StasiunAwal:  ListStasiun[25],
@@ -296,7 +287,6 @@ var RuteList []Rute = []Rute{
 		Kode:         "IP99",
 		Nama:         "Jalur I",
 		Harga:        5000,
-		HargaTetap:   true,
 		Gerbong:      5,
 		Kereta:       ListKereta[8],
 		StasiunAwal:  ListStasiun[27],
@@ -326,7 +316,6 @@ var RuteList []Rute = []Rute{
 		Kode:         "J83I",
 		Nama:         "Jalur J",
 		Harga:        15000,
-		HargaTetap:   true,
 		Gerbong:      8,
 		Kereta:       ListKereta[7],
 		StasiunAwal:  ListStasiun[33],

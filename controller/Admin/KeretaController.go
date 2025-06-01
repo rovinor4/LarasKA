@@ -409,3 +409,24 @@ func deleteKereta() {
 	}
 	KeretaController()
 }
+
+
+func TableKereta() {
+	MappingKereta := make([]map[string]string, 0, len(model.ListStasiun))
+
+	for _, kereta := range model.ListKereta {
+		MappingKereta = append(MappingKereta, map[string]string{
+			"Kode":  strconv.Itoa(kereta.Kode),
+			"Nama":  kereta.Nama,
+			"Kelas": kereta.Kelas,
+		})
+	}
+
+	utils.PrintTable(
+		[]string{"Kode", "Nama", "Kelas"},
+		MappingKereta,
+		[]string{"Kode", "Nama", "Kelas"},
+		4,
+		"Data Kereta",
+	)
+}

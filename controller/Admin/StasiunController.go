@@ -261,7 +261,7 @@ func EditStasiun() {
 		if !Have {
 			return false, "ID Stasiun tidak ditemukan, silakan coba lagi."
 		}
-	
+
 		return true, ""
 	})
 
@@ -313,4 +313,44 @@ func EditStasiun() {
 	}
 	utils.ClearScreen()
 	StasiunController()
+}
+
+func TableStasiun() {
+	MappingStasiun := make([]map[string]string, 0, len(model.ListStasiun))
+
+	for _, stasiun := range model.ListStasiun {
+		MappingStasiun = append(MappingStasiun, map[string]string{
+			"IDStasiun": stasiun.IDStasiun,
+			"Nama":      stasiun.Nama,
+			"Kota":      stasiun.Kota,
+		})
+	}
+
+	utils.PrintTable(
+		[]string{"ID Stasiun", "Nama Stasiun", "Kota"},
+		MappingStasiun,
+		[]string{"IDStasiun", "Nama", "Kota"},
+		4,
+		"Data Stasiun",
+	)
+}
+
+func TableStasiunWithData(Data []model.Stasiun) {
+	MappingStasiun := make([]map[string]string, 0, len(Data))
+
+	for _, stasiun := range Data {
+		MappingStasiun = append(MappingStasiun, map[string]string{
+			"IDStasiun": stasiun.IDStasiun,
+			"Nama":      stasiun.Nama,
+			"Kota":      stasiun.Kota,
+		})
+	}
+
+	utils.PrintTable(
+		[]string{"ID Stasiun", "Nama Stasiun", "Kota"},
+		MappingStasiun,
+		[]string{"IDStasiun", "Nama", "Kota"},
+		4,
+		"Data Stasiun",
+	)
 }

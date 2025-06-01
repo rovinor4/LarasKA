@@ -2,7 +2,7 @@ package user
 
 import (
 	"fmt"
-	"laraska/model"
+	"laraska/controller"
 	"laraska/utils"
 	"strconv"
 )
@@ -11,7 +11,7 @@ func MenuAwalUser() {
 
 	utils.PrintBoxWithText(60, []string{
 		"LarasKA (Layanan Reservasi Kereta Api)",
-		fmt.Sprintf("Hai, %s", model.AuthData.User.NamaLengkap),
+		fmt.Sprintf("Hai, %s", controller.AuthData.User.NamaLengkap),
 	})
 
 	fmt.Println("[1] Pesan Tiket")

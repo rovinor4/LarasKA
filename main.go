@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"laraska/controller"
 	admin "laraska/controller/Admin"
@@ -9,11 +8,9 @@ import (
 	"os"
 )
 
-var Reader = bufio.NewReader(os.Stdin)
-
 func main() {
 
-	admin.StasiunController()
+	admin.AddTiket()
 	return
 
 	utils.PrintBoxWithText(60, []string{
