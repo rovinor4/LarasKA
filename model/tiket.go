@@ -16,6 +16,7 @@ type Tiket struct {
 	Penumpang    []Penumpang
 	StasiunAwal  Stasiun
 	StasiunAkhir Stasiun
+	
 }
 
 var ListTiket []Tiket

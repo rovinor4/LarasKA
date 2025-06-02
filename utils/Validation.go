@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"crypto/rand"
+	"math/big"
 	"regexp"
 
 	"golang.org/x/text/language"
@@ -29,4 +31,16 @@ func IsIn(value string, options []string) bool {
 		}
 	}
 	return false
+}
+
+func GenerateRandomCode(length int) string {
+	const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	code := make([]byte, length)
+
+	for i := range code {
+		index, _ := rand.Int(rand.Reader, big.NewInt(int64(len(characters))))
+		code[i] = characters[index.Int64()]
+	}
+
+	return string(code)
 }

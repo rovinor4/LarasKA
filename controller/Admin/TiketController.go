@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"laraska/model"
 	"laraska/utils"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -155,7 +156,7 @@ func AddTiket() {
 		return true, ""
 	})
 
-	InputJumlahPenumpang := utils.Input("Masukkan Jumlah Penumpang: ", func(input string) (bool, string) {
+	InputJumlahPenumpang := utils.Input("Masukkan Jumlah Penumpang : ", func(input string) (bool, string) {
 		if input == "" {
 			return false, "Jumlah penumpang tidak boleh kosong"
 		}
@@ -174,6 +175,226 @@ func AddTiket() {
 
 	JumlahPenumpang, _ := strconv.Atoi(InputJumlahPenumpang)
 
-	fmt.Println(JumlahPenumpang, TanggalKeberangkatan)
+	var Rute []model.Rute
 
+	TanggalKeberangkatanParse, _ := time.Parse("02-01-2006", TanggalKeberangkatan)
+
+	for _, rute := range model.ListRute {
+
+		RuteAwal := false
+		RuteTujuan := false
+		JadwalRute := false
+
+		for _, Berhenti := range rute.RuteBerhenti {
+			if !RuteAwal && Berhenti.StasiunAwal.IDStasiun == StasiunAwal.IDStasiun {
+				RuteAwal = true
+			}
+
+			if !RuteTujuan && Berhenti.StasiunAkhir.IDStasiun == StasiunTujuan.IDStasiun {
+				RuteTujuan = true
+			}
+
+			if !JadwalRute && Berhenti.Berangkat.After(TanggalKeberangkatanParse) {
+				JadwalRute = true
+			}
+		}
+
+		if RuteAwal && RuteTujuan && JadwalRute {
+			Rute = append(Rute, rute)
+		}
+	}
+
+	if len(Rute) == 0 {
+		utils.PrintMessage("Rute tidak ditemukan antara stasiun awal dan tujuan", "error")
+		return
+	}
+
+	TableRuteWithData(Rute, StasiunAwal, StasiunTujuan, fmt.Sprintf("Rute dari %s ke %s", StasiunAwal.Nama, StasiunTujuan.Nama))
+
+	var PilihRute model.Rute
+	utils.Input("Masukan ID Rute yang ingin dipilih: ", func(input string) (bool, string) {
+
+		if input == "" {
+			return false, "ID Rute tidak boleh kosong"
+		}
+
+		sortedRute := utils.InsertionSort(Rute, func(a, b model.Rute) bool {
+			return a.Kode < b.Kode
+		})
+
+		var found bool
+		PilihRute, found, _ = utils.BinaryFindOne(sortedRute, model.Rute{Kode: input}, func(a, b model.Rute) int {
+			if a.Kode < b.Kode {
+				return -1
+			} else if a.Kode > b.Kode {
+				return 1
+			}
+			return 0
+		})
+
+		if !found {
+			return false, "Rute tidak ditemukan, silakan coba lagi"
+		}
+
+		return true, ""
+	})
+
+	utils.ClearScreen()
+	utils.PrintHead("Tambah Tiket | Konfirmasi")
+	Berangkat := ""
+	Tiba := ""
+	for _, ruteBerhenti := range PilihRute.RuteBerhenti {
+		if ruteBerhenti.StasiunAwal.IDStasiun == StasiunAwal.IDStasiun {
+			Berangkat = ruteBerhenti.Berangkat.Format("02-01-2006 15:04")
+		}
+
+		if ruteBerhenti.StasiunAkhir.IDStasiun == StasiunTujuan.IDStasiun {
+			Tiba = ruteBerhenti.Tiba.Format("02-01-2006 15:04")
+		}
+	}
+
+	utils.PrintBoxLeft(60, []string{
+		fmt.Sprintf("Stasiun Awal: %s - %s", StasiunAwal.Nama, StasiunAwal.Kota),
+		fmt.Sprintf("Stasiun Tujuan: %s - %s", StasiunTujuan.Nama, StasiunTujuan.Kota),
+		fmt.Sprintf("Waktu Berangkat: %s", Berangkat),
+		fmt.Sprintf("Waktu Tiba: %s", Tiba),
+		fmt.Sprintf("Jumlah Penumpang: %d", JumlahPenumpang),
+		fmt.Sprintf("Rute yang dipilih: %s - %s", PilihRute.Kode, PilihRute.Kereta.Nama),
+		fmt.Sprintf("Total Harga: %s", utils.RupiahFormat(PilihRute.Harga*JumlahPenumpang)),
+	})
+
+	Konfirmasi := utils.Input("Apakah data sudah benar? (y/n): ", func(input string) (bool, string) {
+		if input == "" {
+			return false, "Input tidak boleh kosong"
+		}
+
+		if !utils.IsIn(input, []string{"y", "n"}) {
+			return false, "Input tidak valid, silakan masukkan 'y' atau 'n'"
+		}
+
+		return true, ""
+	})
+
+	if Konfirmasi == "n" {
+		utils.ClearScreen()
+		utils.PrintMessage("Proses pembatalan tiket", "error")
+		TiketController()
+		return
+	}
+
+	utils.PrintHead("Tambah Tiket | Data Penumpang")
+	var Penumpang []model.Penumpang
+	for i := 0; i < JumlahPenumpang; i++ {
+
+		fmt.Printf("Data Penumpang %d\n", i+1)
+		Nama := utils.Input("Masukkan Nama Penumpang: ", func(input string) (bool, string) {
+			if input == "" {
+				return false, "Nama tidak boleh kosong"
+			}
+			return true, ""
+		})
+
+		NIK := utils.Input("Masukkan NIK Penumpang: ", func(input string) (bool, string) {
+			if input == "" {
+				return false, "NIK tidak boleh kosong"
+			}
+			if len(input) != 16 || !utils.IsNumeric(input) {
+				return false, "NIK harus berupa 16 digit angka"
+			}
+			return true, ""
+		})
+
+		Gerbong := 0
+		utils.Input("Masukkan Gerbong Penumpang: ", func(input string) (bool, string) {
+			if input == "" {
+				return false, "Gerbong tidak boleh kosong"
+			}
+			if !utils.IsNumeric(input) {
+				return false, "Gerbong harus berupa angka"
+			}
+
+			Gerbong, _ = strconv.Atoi(input)
+			if Gerbong <= 0 || Gerbong > PilihRute.Gerbong {
+				return false, fmt.Sprintf("Gerbong harus antara 1 dan %d", PilihRute.Gerbong)
+			}
+			return true, ""
+		})
+
+		TempatDuduk := utils.Input("Masukkan Tempat Duduk Penumpang: ", func(input string) (bool, string) {
+			if input == "" {
+				return false, "Tempat duduk tidak boleh kosong"
+			}
+
+			pola := `^[A-E](1[0-6]|[1-9])$`
+			regex := regexp.MustCompile(pola)
+
+			if !regex.MatchString(input) {
+				return false, "Tempat duduk harus dalam format A1, B2, C3, dst. (A-E untuk kolom dan 1-16 untuk baris)"
+			}
+
+			return true, ""
+		})
+
+		Penumpang = append(Penumpang, model.Penumpang{
+			Kode:        fmt.Sprintf("%s-%s", PilihRute.Kode, utils.GenerateRandomCode(10)),
+			Nama:        Nama,
+			NIK:         NIK,
+			Gerbong:     Gerbong,
+			TempatDuduk: TempatDuduk,
+		})
+	}
+
+	utils.ClearScreen()
+
+	utils.PrintHead("Tambah Tiket | Konfirmasi Data Penumpang")
+
+	utils.PrintBoxLeft(60, []string{
+		fmt.Sprintf("Stasiun Awal: %s - %s", StasiunAwal.Nama, StasiunAwal.Kota),
+		fmt.Sprintf("Stasiun Tujuan: %s - %s", StasiunTujuan.Nama, StasiunTujuan.Kota),
+		fmt.Sprintf("Waktu Berangkat: %s", Berangkat),
+		fmt.Sprintf("Waktu Tiba: %s", Tiba),
+		fmt.Sprintf("Jumlah Penumpang: %d", JumlahPenumpang),
+		fmt.Sprintf("Rute yang dipilih: %s - %s", PilihRute.Kode, PilihRute.Kereta.Nama),
+		fmt.Sprintf("Total Harga: %s", utils.RupiahFormat(PilihRute.Harga*JumlahPenumpang)),
+	})
+
+	for i, p := range Penumpang {
+		utils.PrintBoxLeft(60, []string{
+			fmt.Sprintf("Penumpang Ke-%d", i+1),
+			fmt.Sprintf("Kode Penumpang: %s", p.Kode),
+			fmt.Sprintf("Nama: %s", p.Nama),
+			fmt.Sprintf("NIK: %s", p.NIK),
+			fmt.Sprintf("Gerbong: %d", p.Gerbong),
+			fmt.Sprintf("Tempat Duduk: %s", p.TempatDuduk),
+		})
+		utils.Divider("-")
+	}
+
+	Confirm := utils.Input("Apakah data penumpang sudah benar? (y/n): ", func(input string) (bool, string) {
+		if input == "" {
+			return false, "Input tidak boleh kosong"
+		}
+		if !utils.IsIn(input, []string{"y", "n"}) {
+			return false, "Input tidak valid, silakan masukkan 'y' atau 'n'"
+		}
+		return true, ""
+	})
+
+	utils.ClearScreen()
+	if Confirm == "y" {
+		Tiket := model.Tiket{
+			Kode:         fmt.Sprintf("%s-%s", PilihRute.Kode, utils.GenerateRandomCode(10)),
+			Rute:         PilihRute,
+			Price:        PilihRute.Harga * JumlahPenumpang,
+			User:         model.User{},
+			Penumpang:    Penumpang,
+			StasiunAwal:  StasiunAwal,
+			StasiunAkhir: StasiunTujuan,
+		}
+		model.ListTiket = append(model.ListTiket, Tiket)
+		utils.PrintMessage("Tiket berhasil ditambahkan", "success")
+	} else {
+		utils.PrintMessage("Proses pembatalan tiket", "error")
+	}
+	TiketController()
 }

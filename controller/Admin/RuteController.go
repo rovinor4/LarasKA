@@ -632,3 +632,29 @@ func DeleteRute() {
 
 	RuteController()
 }
+
+func TableRuteWithData(data []model.Rute, StasiunAwal model.Stasiun, StasiunAkhir model.Stasiun, Title string) {
+	DataMap := make([]map[string]string, 0, len(data))
+	for _, rute := range data {
+		DataMap = append(DataMap, map[string]string{
+			"Kode":          rute.Kode,
+			"Nama":          rute.Nama,
+			"StasiunAsal":   StasiunAwal.Nama,
+			"StasiunTujuan": StasiunAkhir.Nama,
+			"Harga":         utils.RupiahFormat(rute.Harga),
+			"Gerbong":       strconv.Itoa(rute.Gerbong),
+			"Kereta":        rute.Kereta.Nama,
+			"RuteBehenti":   strconv.Itoa(len(rute.RuteBerhenti)),
+			"Berangkat":     rute.RuteBerhenti[0].Berangkat.Format("2006-01-02 15:04:05"),
+			"Tiba":          rute.RuteBerhenti[len(rute.RuteBerhenti)-1].Tiba.Format("2006-01-02 15:04:05"),
+		})
+	}
+
+	utils.PrintTable(
+		[]string{"Kode", "Nama", "Stasiun Asal", "Stasiun Tujuan", "Harga", "Gerbong", "Kereta", "Titik Rute Berhenti", "Berangkat", "Tiba"},
+		DataMap,
+		[]string{"Kode", "Nama", "StasiunAsal", "StasiunTujuan", "Harga", "Gerbong", "Kereta", "RuteBehenti", "Berangkat", "Tiba"},
+		4,
+		Title,
+	)
+}
