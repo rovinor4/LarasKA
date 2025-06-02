@@ -92,8 +92,6 @@ func EditAkunUser(authUser *model.User) {
 		utils.ClearScreen()
 		utils.PrintMessage("Edit User Dibatalkan", "warning")
 	}
-
-	fmt.Println("DEBUG ", model.ListUser)
 	MenuAwalUser(*authUser)
 
 }
