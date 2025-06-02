@@ -409,6 +409,21 @@ func AddTiket() {
 				return false, "Tempat duduk harus dalam format A1, B2, C3, dst. (A-E untuk kolom dan 1-16 untuk baris)"
 			}
 
+			Stop := false
+
+			for i = 0; i < len(model.ListTiket) && !Stop; i++ {
+				TK := model.ListTiket[i]
+				if TK.Rute.Kode == PilihRute.Kode {
+					for j := 0; j < len(TK.Penumpang) && !Stop; j++ {
+						if TK.Penumpang[j].Gerbong == Gerbong && TK.Penumpang[j].TempatDuduk == input {
+							return false, fmt.Sprintf("Tempat duduk %s di gerbong %d sudah terisi", input, Gerbong)
+						}
+					}
+					Stop = true
+				}
+			}
+
+
 			return true, ""
 		})
 
