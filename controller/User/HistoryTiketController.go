@@ -19,21 +19,28 @@ func ShowHistoryTiket(authUser model.User) {
 		utils.PrintMessage("Belum ada tiket yang dipesan!", "error")
 		MenuAwalUser(authUser)
 	}
+	var UserArr []model.Tiket
 
-	for i, tiket := range model.ListTiket {
+	for _, tiket := range model.ListTiket {
+		if tiket.User.Email == authUser.Email {
+			UserArr = append(UserArr, tiket)
+		}
+	}
+
+	for i, tiketUser := range UserArr {
 		var penumpangList strings.Builder
-		for _, p := range tiket.Penumpang {
+		for _, p := range tiketUser.Penumpang {
 			penumpangList.WriteString(fmt.Sprint(p.Nama))
 		}
 		penumpangStr := strings.TrimSuffix(penumpangList.String(), ", ")
-
 		mappedTiket = append(mappedTiket, map[string]string{
 			"no":       strconv.Itoa(i + 1),
-			"kode":     tiket.Kode,
+			"kode":     tiketUser.Kode,
 			"atasNama": penumpangStr,
-			"rute":     fmt.Sprintf("%s - %s", tiket.Rute.StasiunAwal.Nama, tiket.Rute.StasiunAkhir.Nama),
-			"jadwal":   tiket.Rute.RuteBerhenti[0].Berangkat.Format("02/01/2006 15:04"),
+			"rute":     fmt.Sprintf("%s - %s", tiketUser.Rute.StasiunAwal.Nama, tiketUser.Rute.StasiunAkhir.Nama),
+			"jadwal":   tiketUser.Rute.RuteBerhenti[0].Berangkat.Format("02/01/2006 15:04"),
 		})
+
 	}
 
 	utils.PrintTable(
@@ -62,7 +69,7 @@ func ShowHistoryTiket(authUser model.User) {
 
 	switch input {
 	case "1":
-		detailTiket(authUser, *reader)
+		detailTiket(authUser, UserArr, *reader)
 	case "2":
 		utils.ClearScreen()
 		MenuAwalUser(authUser)
@@ -76,8 +83,7 @@ func ShowHistoryTiket(authUser model.User) {
 	}
 }
 
-// TODO: Tiket layout
-func detailTiket(authUser model.User, reader bufio.Reader) {
+func detailTiket(authUser model.User, userArr []model.Tiket, reader bufio.Reader) {
 	inputNomor := utils.Input("Pilih nomor tiket: ", func(value string) (bool, string) {
 		if value == "" {
 			return false, ""
@@ -91,14 +97,14 @@ func detailTiket(authUser model.User, reader bufio.Reader) {
 	if err != nil {
 		errFmt := fmt.Sprintf("Invalid input \"%s\"", inputNomor)
 		utils.PrintMessage(errFmt, "error")
-		detailTiket(authUser, reader)
+		detailTiket(authUser, userArr, reader)
 	} else if nomor < 1 || nomor > len(model.ListTiket) {
 		errFmt := fmt.Sprintf("Error: Out of range \"%s\"", strconv.Itoa(nomor))
 		utils.PrintMessage(errFmt, "error")
-		detailTiket(authUser, reader)
+		detailTiket(authUser, userArr, reader)
 	}
 
-	selectedTiket := model.ListTiket[nomor-1]
+	selectedTiket := userArr[nomor-1]
 	ruteBerhenti := selectedTiket.Rute.RuteBerhenti
 
 	bannerFmt := fmt.Sprintf("%s - %s | %s", selectedTiket.Rute.StasiunAwal.Kota, selectedTiket.Rute.StasiunAkhir.Kota, selectedTiket.Rute.Nama)
@@ -117,7 +123,7 @@ func detailTiket(authUser model.User, reader bufio.Reader) {
 		"\n",
 	})
 
-	fmt.Print("Press ENTER to continue")
+	fmt.Print("Tekan ENTER untuk melanjutkan")
 	reader.ReadByte()
 	fmt.Println()
 	utils.ClearScreen()

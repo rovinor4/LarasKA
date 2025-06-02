@@ -3,7 +3,7 @@ package User
 import (
 	"bufio"
 	"fmt"
-	"laraska/controller"
+	"laraska/controller/Admin"
 	"laraska/model"
 	"laraska/utils"
 	"os"
@@ -11,6 +11,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func PesanTiket(authUser model.User) {
@@ -19,25 +20,52 @@ func PesanTiket(authUser model.User) {
 	var Rute = model.Rute{}
 	var penumpangs []model.Penumpang
 	var tikets = []model.Tiket{}
-
-	var mappedRute []map[string]string
+	var ruteTersedia []model.Rute
 
 	handleStasiunInput(authUser, "Stasiun Awal", model.ListStasiun, &Rute)
 	utils.ClearScreen()
 	handleStasiunInput(authUser, "Stasiun Tujuan", model.ListStasiun, &Rute)
 
-	ruteTersedia := utils.FindMany(model.ListRute, model.Rute{
-		StasiunAwal:  Rute.StasiunAwal,
-		StasiunAkhir: Rute.StasiunAkhir,
-		// RuteBerhenti: []model.RuteBerhenti{{Berangkat: Rute.RuteBerhenti[0].Berangkat}},
-	}, func(a, b model.Rute) int {
-		if a.StasiunAwal.IDStasiun == b.StasiunAwal.IDStasiun &&
-			a.StasiunAkhir.IDStasiun == b.StasiunAkhir.IDStasiun {
-			return 0
-		} else {
-			return 1
+	Jadwal := utils.Input("Tentukan jadwal keberangkatan (DD/MM/YYYY): ", func(value string) (bool, string) {
+		if value == "" {
+			errfmt := fmt.Sprint("Jadwal tidak boleh kosong", value)
+			return false, errfmt
 		}
+
+		_, errJadwal := time.Parse("02/01/2006", value)
+		if errJadwal != nil {
+			return false, "Format jadwal salah"
+		}
+
+		return true, ""
 	})
+
+	ParsedJadwal, _ := time.Parse("02/01/2006", Jadwal)
+
+	for _, rute := range model.ListRute {
+
+		RuteAwal := false
+		RuteTujuan := false
+		JadwalRute := false
+
+		for _, Berhenti := range rute.RuteBerhenti {
+			if !RuteAwal && Berhenti.StasiunAwal.IDStasiun == Rute.StasiunAwal.IDStasiun {
+				RuteAwal = true
+			}
+
+			if !RuteTujuan && Berhenti.StasiunAkhir.IDStasiun == Rute.StasiunAkhir.IDStasiun {
+				RuteTujuan = true
+			}
+
+			if !JadwalRute && Berhenti.Berangkat.After(ParsedJadwal) {
+				JadwalRute = true
+			}
+		}
+
+		if RuteAwal && RuteTujuan && JadwalRute {
+			ruteTersedia = append(ruteTersedia, rute)
+		}
+	}
 
 	if len(ruteTersedia) == 0 {
 		utils.ClearScreen()
@@ -46,68 +74,7 @@ func PesanTiket(authUser model.User) {
 		PesanTiket(authUser)
 	}
 
-	for no, rute := range ruteTersedia {
-		mappedRute = append(mappedRute, map[string]string{
-			"No":            strconv.Itoa(no + 1),
-			"Kode":          rute.Kode,
-			"Kereta":        rute.Kereta.Nama,
-			"Stasiun Awal":  fmt.Sprintf("%s - %s", rute.StasiunAwal.Kota, rute.StasiunAwal.Nama),
-			"Stasiun Akhir": fmt.Sprintf("%s - %s", rute.StasiunAkhir.Kota, rute.StasiunAkhir.Nama),
-			"Jadwal":        rute.RuteBerhenti[0].Berangkat.Format("02/01/2006 15:04"),
-			"Harga":         strconv.Itoa(rute.Harga),
-		})
-	}
-
-	utils.ClearScreen()
-	utils.PrintTable(
-		[]string{"No", "Kode", "Kereta", "Stasiun Awal", "Stasiun Akhir", "Jadwal", "Harga"},
-		mappedRute,
-		[]string{"No", "Kode", "Kereta", "Stasiun Awal", "Stasiun Akhir", "Jadwal", "Harga"},
-		2,
-		"Rute Tersedia",
-	)
-
-	utils.Input("Pilih nomor rute: ", func(value string) (bool, string) {
-		if value == "" {
-			errfmt := fmt.Sprintf("Kode \"%s\" tidak ditemuakan", value)
-			return false, errfmt
-		}
-
-		noRute, errNoRute := strconv.Atoi(value)
-		if errNoRute != nil {
-			return false, "Input harus berupa angka"
-		} else if noRute < 1 || noRute > len(ruteTersedia) {
-			return false, "Nomor yang anda masukkan tidak sesuai"
-		}
-
-		for _, rute := range mappedRute {
-			if rute["No"] == value {
-				Rute = ruteTersedia[noRute-1]
-				return true, ""
-			}
-		}
-
-		return false, ""
-	})
-
-	utils.Input("Apakah anda ingin melanjutkan (y/n): ", func(value string) (bool, string) {
-		if value == "" {
-			return false, ""
-		}
-		if strings.ToLower(value) == "y" {
-			return true, ""
-		} else if strings.ToLower(value) == "n" {
-			mappedRute = []map[string]string{}
-			utils.ClearScreen()
-			PesanTiket(authUser)
-		} else {
-			return false, "Pilihan tidak tersedia"
-		}
-
-		return false, ""
-
-	})
-
+	Rute = Admin.TiketRute(ruteTersedia, Rute.StasiunAwal, Rute.StasiunAkhir)
 	jmlPenumpangStr := utils.Input("Masukkan jumlah Penumpang: ", func(value string) (bool, string) {
 		if value == "" {
 			return false, "Jumlah penumpang tidak boleh kosong"
@@ -123,8 +90,8 @@ func PesanTiket(authUser model.User) {
 	})
 
 	utils.Divider("-")
-	fmt.Println("Nama: ", controller.AuthData.User.NamaLengkap)
-	fmt.Println("NIK: ", controller.AuthData.User.NIK)
+	fmt.Println("Nama: ", authUser.NamaLengkap)
+	fmt.Println("NIK: ", authUser.NIK)
 	utils.Divider("-")
 	utils.Input("Tambah user ini sebagai penumpang (y/n): ", func(value string) (bool, string) {
 		if value == "" {
@@ -133,9 +100,9 @@ func PesanTiket(authUser model.User) {
 
 		if strings.ToLower(value) == "y" {
 			penumpangs = append(penumpangs, model.Penumpang{
-				Kode: GenerateKodePenumpang(),
-				Nama: controller.AuthData.User.NamaLengkap,
-				NIK:  controller.AuthData.User.NIK,
+				Kode: fmt.Sprintf("PN%s-%s", Rute.Kode, utils.GenerateRandomCode(5)),
+				Nama: authUser.NamaLengkap,
+				NIK:  authUser.NIK,
 			})
 			return true, ""
 		} else if strings.ToLower(value) == "n" {
@@ -147,10 +114,10 @@ func PesanTiket(authUser model.User) {
 	})
 
 	jmlPenumpang, _ := strconv.Atoi(jmlPenumpangStr)
-	formDetailPenumpang(reader, jmlPenumpang, &penumpangs)
+	formDetailPenumpang(reader, jmlPenumpang, Rute, &penumpangs)
 
 	oldListTiket := model.ListTiket
-	formCreateTiket(reader, Rute, &tikets, &penumpangs)
+	formCreateTiket(reader, authUser, Rute, &tikets, &penumpangs)
 
 	model.ListTiket = append(model.ListTiket, tikets...)
 	if len(model.ListTiket) > len(oldListTiket) {
@@ -183,8 +150,9 @@ func handleStasiunInput(authUser model.User, stasiun string, listStasiun []model
 		"Pemesanan Tiket Kereta | List Stasiun",
 	)
 
+	pilihanFmt := fmt.Sprintf("[2] Pilih %s", stasiun)
 	fmt.Println("[1] Search")
-	fmt.Println("[2] Pilih Stasiun")
+	fmt.Println(pilihanFmt)
 	fmt.Println("[3] Kembali")
 	utils.Divider("-")
 
@@ -220,7 +188,7 @@ func handleStasiunInput(authUser model.User, stasiun string, listStasiun []model
 		return a.IDStasiun < b.IDStasiun
 	})
 
-	inputPrompt := fmt.Sprintf("Masukkan kode %s: ", stasiun)
+	inputPrompt := fmt.Sprintf("Masukkan Kode %s: ", stasiun)
 
 	if stasiunLower == "stasiunawal" {
 		utils.Input(inputPrompt, func(value string) (bool, string) {
@@ -297,7 +265,7 @@ func handleSearch(listStasiun *[]model.Stasiun) {
 	*listStasiun = newListStasiun
 	utils.ClearScreen()
 }
-func formDetailPenumpang(reader *bufio.Reader, jmlPenumpang int, penumpangs *[]model.Penumpang) {
+func formDetailPenumpang(reader *bufio.Reader, jmlPenumpang int, rute model.Rute, penumpangs *[]model.Penumpang) {
 	for len(*penumpangs) < jmlPenumpang {
 		fmt.Println()
 		fmt.Printf("Detail Penumpang #%d\n", len(*penumpangs)+1)
@@ -362,14 +330,14 @@ func formDetailPenumpang(reader *bufio.Reader, jmlPenumpang int, penumpangs *[]m
 		}
 
 		*penumpangs = append(*penumpangs, model.Penumpang{
-			Kode: GenerateKodePenumpang(), // TODO: Simplified kode generator
+			Kode: fmt.Sprintf("PN%s-%s", rute.Kode, utils.GenerateRandomCode(5)),
 			Nama: nama,
 			NIK:  nik,
 		})
 	}
 }
 
-func formCreateTiket(reader *bufio.Reader, rute model.Rute, tikets *[]model.Tiket, penumpangs *[]model.Penumpang) {
+func formCreateTiket(reader *bufio.Reader, authUser model.User, rute model.Rute, tikets *[]model.Tiket, penumpangs *[]model.Penumpang) {
 	Tikets := slices.Clone(model.ListTiket)
 	Tikets = append(Tikets, *tikets...)
 
@@ -404,9 +372,13 @@ func formCreateTiket(reader *bufio.Reader, rute model.Rute, tikets *[]model.Tike
 			fmt.Print("Masukkan nomor tempat duduk: ")
 			inputKursi, errKursi := reader.ReadString('\n')
 			tempatDuduk = strings.TrimSpace(inputKursi)
+			polaTempatDuduk := `^[A-E](1[0-6]|[1-9])$`
+			regex := regexp.MustCompile(polaTempatDuduk)
 
 			if tempatDuduk == "" || errKursi != nil {
 				utils.PrintMessage("Mohon memesan tempat duduk untuk kenyamanan anda", "error")
+			} else if !regex.MatchString(tempatDuduk) {
+				utils.PrintMessage("Format tempat duduk salah", "error")
 			} else {
 				isKursiAvailable := true
 
@@ -423,10 +395,12 @@ func formCreateTiket(reader *bufio.Reader, rute model.Rute, tikets *[]model.Tike
 
 				if isKursiAvailable {
 					tiket := model.Tiket{
-						Kode:  GenerateKodeTiket(), // TODO: Simplified kode generator
+						Kode:  fmt.Sprintf("%s-%s", rute.Kode, utils.GenerateRandomCode(10)),
 						Rute:  rute,
 						Price: rute.Harga,
-						User:  model.User{NamaLengkap: (*penumpangs)[0].Nama, NIK: (*penumpangs)[0].NIK},
+						User: model.User{
+							Email: authUser.Email,
+						},
 						Penumpang: []model.Penumpang{
 							{
 								Kode:        (*penumpangs)[p].Kode,

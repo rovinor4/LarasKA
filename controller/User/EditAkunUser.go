@@ -8,8 +8,7 @@ import (
 	"strings"
 )
 
-// TODO: Edit User ability
-func EditAkunUser(authUser model.User) {
+func EditAkunUser(authUser *model.User) {
 	utils.PrintHead("Edit User")
 
 	utils.PrintBoxWithText(60, []string{
@@ -72,9 +71,20 @@ func EditAkunUser(authUser model.User) {
 	if strings.ToLower(yesno) == "y" {
 		for i, usr := range model.ListUser {
 			if usr.NIK == authUser.NIK {
-				model.ListUser[i].NIK = nik
-				model.ListUser[i].NamaLengkap = nama
-				model.ListUser[i].Pekerjaan = pekerjaan
+				if nik != "" {
+					authUser.NIK = nik
+					model.ListUser[i].NIK = nik
+				}
+
+				if nama != "" {
+					authUser.NamaLengkap = nama
+					model.ListUser[i].NamaLengkap = nama
+				}
+
+				if pekerjaan != "" {
+					authUser.Pekerjaan = pekerjaan
+					model.ListUser[i].Pekerjaan = pekerjaan
+				}
 			}
 		}
 		utils.ClearScreen()
@@ -83,7 +93,7 @@ func EditAkunUser(authUser model.User) {
 		utils.PrintMessage("Edit User Dibatalkan", "warning")
 	}
 
-	fmt.Println("DEBUG: ", model.ListUser)
-	MenuAwalUser(authUser)
+	fmt.Println("DEBUG ", model.ListUser)
+	MenuAwalUser(*authUser)
 
 }
