@@ -42,6 +42,10 @@ func TiketController() {
 	case 1:
 		AddTiket()
 	case 2:
+		CekTiket()
+	case 0:
+		utils.ClearScreen()
+		MenuAwalAdmin()
 
 	}
 }
@@ -422,7 +426,6 @@ func AddTiket() {
 					Stop = true
 				}
 			}
-
 
 			return true, ""
 		})

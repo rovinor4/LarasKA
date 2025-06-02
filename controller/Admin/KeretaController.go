@@ -27,7 +27,7 @@ func KeretaController() {
 			return false, "Input harus berupa angka"
 		}
 
-		if !utils.IsIn(value, []string{"1", "2", "3", "4", "5"}) {
+		if !utils.IsIn(value, []string{"1", "2", "3", "4", "0"}) {
 			return false, "Pilihan tidak valid, silakan coba lagi."
 		}
 

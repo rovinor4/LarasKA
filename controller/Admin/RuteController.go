@@ -42,6 +42,9 @@ func RuteController() {
 		AddRute()
 	case 3:
 		DeleteRute()
+	case 0:
+		utils.ClearScreen()
+		MenuAwalAdmin()
 	}
 
 }
