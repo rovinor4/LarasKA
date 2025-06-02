@@ -15,7 +15,7 @@ func KeretaController() {
 	fmt.Println("[2] Tambah Data Kereta")
 	fmt.Println("[3] Edit Data Kereta")
 	fmt.Println("[4] Hapus Data Kereta")
-	fmt.Println("[5] Kembali Ke Menu Awal")
+	fmt.Println("[0] Kembali Ke Menu Awal")
 	utils.Divider("-")
 
 	Input := utils.Input("Masukan nomor menu : ", func(value string) (bool, string) {
@@ -45,7 +45,7 @@ func KeretaController() {
 		updateKereta()
 	case 4:
 		deleteKereta()
-	case 5:
+	case 0:
 		utils.ClearScreen()
 		MenuAwalAdmin()
 	}
@@ -409,7 +409,6 @@ func deleteKereta() {
 	}
 	KeretaController()
 }
-
 
 func TableKereta(Judul string) {
 	MappingKereta := make([]map[string]string, 0, len(model.ListStasiun))

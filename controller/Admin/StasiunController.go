@@ -15,7 +15,7 @@ func StasiunController() {
 	fmt.Println("[2] Tambah Stasiun")
 	fmt.Println("[3] Edit Stasiun")
 	fmt.Println("[4] Hapus Stasiun")
-	fmt.Println("[5] Kembali ke Menu Awal")
+	fmt.Println("[0] Kembali ke Menu Awal")
 	utils.Divider("-")
 
 	InputSelect := utils.Input("Pilih menu: ", func(input string) (bool, string) {
@@ -26,7 +26,7 @@ func StasiunController() {
 			return false, "Input harus berupa angka"
 		}
 
-		if !utils.IsIn(input, []string{"1", "2", "3", "4", "5"}) {
+		if !utils.IsIn(input, []string{"1", "2", "3", "4", "0"}) {
 			return false, "Input tidak valid, silakan pilih menu yang tersedia"
 		}
 
@@ -42,6 +42,11 @@ func StasiunController() {
 		AddStasiun()
 	case 3:
 		EditStasiun()
+	case 4:
+		DeleteStasiun()
+	case 0:
+		utils.ClearScreen()
+		MenuAwalAdmin()
 	}
 }
 
@@ -312,6 +317,67 @@ func EditStasiun() {
 		utils.PrintMessage("Stasiun tidak diedit", "warning")
 	}
 	utils.ClearScreen()
+	StasiunController()
+}
+
+func DeleteStasiun() {
+	utils.ClearScreen()
+	utils.PrintHead("Hapus Stasiun")
+
+	var Index int
+	var Stasiun model.Stasiun
+
+	utils.Input("Masukkan ID Stasiun yang ingin dihapus: ", func(value string) (bool, string) {
+		if value == "" {
+			return false, "ID Stasiun tidak boleh kosong"
+		}
+		if len(value) > 3 {
+			return false, "ID Stasiun maksimal 3 karakter"
+		}
+
+		Have := false
+		Stasiun, Have, Index = utils.FindOne(model.ListStasiun, model.Stasiun{IDStasiun: value}, func(a, b model.Stasiun) int {
+			if a.IDStasiun < b.IDStasiun {
+				return -1
+			} else if a.IDStasiun > b.IDStasiun {
+				return 1
+			}
+			return 0
+		})
+
+		if !Have {
+			return false, "ID Stasiun tidak ditemukan, silakan coba lagi."
+		}
+
+		return true, ""
+	})
+
+	utils.ClearScreen()
+	utils.PrintHead("Hapus Stasiun")
+	utils.PrintBoxLeft(60, []string{
+		fmt.Sprintf("ID Stasiun: %s", Stasiun.IDStasiun),
+		fmt.Sprintf("Nama Stasiun: %s", Stasiun.Nama),
+		fmt.Sprintf("Kota Stasiun: %s", Stasiun.Kota),
+	})
+
+	Next := utils.Input("Apakah Anda yakin ingin menghapus stasiun ini? (y/n): ", func(value string) (bool, string) {
+		if value == "" {
+			return false, "Input tidak boleh kosong"
+		}
+		if !utils.IsIn(value, []string{"y", "n"}) {
+			return false, "Input tidak valid, silakan coba lagi."
+		}
+		return true, ""
+	})
+
+	utils.ClearScreen()
+	if Next == "y" {
+		model.ListStasiun = append(model.ListStasiun[:Index], model.ListStasiun[Index+1:]...)
+		utils.PrintMessage("Stasiun berhasil dihapus", "success")
+	} else {
+		utils.PrintMessage("Stasiun tidak dihapus", "warning")
+	}
+
 	StasiunController()
 }
 

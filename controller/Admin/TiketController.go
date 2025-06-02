@@ -17,7 +17,6 @@ func TiketController() {
 
 	fmt.Println("[1] Tambah Tiket")
 	fmt.Println("[2] Cek Tiket")
-	fmt.Println("[3] Pembatalan Tiket")
 	fmt.Println("[0] Kembali ke Menu Utama")
 
 	utils.Divider("-")
@@ -414,7 +413,7 @@ func AddTiket() {
 		})
 
 		Penumpang = append(Penumpang, model.Penumpang{
-			Kode:        fmt.Sprintf("%s-%s", PilihRute.Kode, utils.GenerateRandomCode(10)),
+			Kode:        fmt.Sprintf("PN%s-%s", PilihRute.Kode, utils.GenerateRandomCode(5)),
 			Nama:        Nama,
 			NIK:         NIK,
 			Gerbong:     Gerbong,
@@ -461,7 +460,7 @@ func AddTiket() {
 	utils.ClearScreen()
 	if Confirm == "y" {
 		Tiket := model.Tiket{
-			Kode:         fmt.Sprintf("%s-%s", PilihRute.Kode, utils.GenerateRandomCode(10)),
+			Kode:         fmt.Sprintf("TK%s-%s", PilihRute.Kode, utils.GenerateRandomCode(5)),
 			Rute:         PilihRute,
 			Price:        PilihRute.Harga * JumlahPenumpang,
 			User:         model.User{},
@@ -477,13 +476,129 @@ func AddTiket() {
 	TiketController()
 }
 
-
-func CekTiket(){
+func CekTiket() {
 	utils.ClearScreen()
 	utils.PrintHead("Cek Tiket")
 
+	var Pilihan int
+	var Tiket model.Tiket
+	var Penumpang model.Penumpang
 
-	
+	fmt.Println("[1] Cek Tiket Berdasarkan Kode Tiket")
+	fmt.Println("[2] Cek Tiket Berdasarkan Kode Penumpang")
+	fmt.Println("[0] Kembali ke Menu Tiket")
+	utils.Divider("-")
 
+	InputPilihan := utils.Input("Masukkan Pilihan: ", func(input string) (bool, string) {
+		if input == "" {
+			return false, "Pilihan tidak boleh kosong"
+		}
 
+		if !utils.IsNumeric(input) {
+			return false, "Pilihan harus berupa angka"
+		}
+
+		if !utils.IsIn(input, []string{"1", "2", "0"}) {
+			return false, "Pilihan tidak valid"
+		}
+
+		return true, ""
+	})
+
+	Pilihan, _ = strconv.Atoi(InputPilihan)
+
+	utils.Divider("-")
+
+	Title := "Kode Tiket"
+	if Pilihan == 2 {
+		Title = "Kode Penumpang"
+	}
+
+	utils.Input(fmt.Sprintf("Masukan %s: ", Title), func(input string) (bool, string) {
+		if input == "" {
+			return false, "Kode tiket tidak boleh kosong"
+		}
+
+		Stop := false
+		Found := false
+		for i := 0; i < len(model.ListTiket) && !Stop; i++ {
+			TK := model.ListTiket[i]
+			for j := 0; j < len(TK.Penumpang) && !Stop; j++ {
+				if Pilihan == 1 && TK.Kode == input {
+					Tiket = TK
+					Stop = true
+					Found = true
+				} else if Pilihan == 2 && TK.Penumpang[j].Kode == input {
+					Tiket = TK
+					Penumpang = TK.Penumpang[j]
+					Stop = true
+					Found = true
+				}
+			}
+		}
+
+		if !Found {
+			return false, "Tiket tidak ditemukan, silakan coba lagi"
+		}
+
+		return true, ""
+	})
+
+	utils.ClearScreen()
+	utils.PrintHead("Cek Tiket | Detail Tiket")
+	utils.PrintBoxLeft(60, []string{
+		fmt.Sprintf("Kode Tiket: %s", Tiket.Kode),
+		fmt.Sprintf("Rute: %s - %s", Tiket.Rute.Kode, Tiket.Rute.Kereta.Nama),
+		fmt.Sprintf("Stasiun Awal: %s - %s", Tiket.StasiunAwal.Nama, Tiket.StasiunAwal.Kota),
+		fmt.Sprintf("Stasiun Tujuan: %s - %s", Tiket.StasiunAkhir.Nama, Tiket.StasiunAkhir.Kota),
+		fmt.Sprintf("Waktu Berangkat: %s", Tiket.Rute.RuteBerhenti[0].Berangkat.Format("02-01-2006 15:04")),
+		fmt.Sprintf("Waktu Tiba: %s", Tiket.Rute.RuteBerhenti[len(Tiket.Rute.RuteBerhenti)-1].Tiba.Format("02-01-2006 15:04")),
+		fmt.Sprintf("Total Harga: %s", utils.RupiahFormat(Tiket.Price)),
+	})
+
+	if Pilihan == 1 {
+		fmt.Println("Daftar Penumpang:")
+		for _, p := range Tiket.Penumpang {
+			utils.PrintBoxLeft(60, []string{
+				fmt.Sprintf("Kode Penumpang: %s", p.Kode),
+				fmt.Sprintf("Nama: %s", p.Nama),
+				fmt.Sprintf("NIK: %s", p.NIK),
+				fmt.Sprintf("Gerbong: %d", p.Gerbong),
+				fmt.Sprintf("Tempat Duduk: %s", p.TempatDuduk),
+			})
+		}
+	} else {
+		utils.PrintBoxLeft(60, []string{
+			fmt.Sprintf("Kode Penumpang: %s", Penumpang.Kode),
+			fmt.Sprintf("Nama: %s", Penumpang.Nama),
+			fmt.Sprintf("NIK: %s", Penumpang.NIK),
+			fmt.Sprintf("Gerbong: %d", Penumpang.Gerbong),
+			fmt.Sprintf("Tempat Duduk: %s", Penumpang.TempatDuduk),
+		})
+	}
+
+	fmt.Println(utils.ColorText("[0] Kembali ke Menu Tiket", 90, 49, false))
+
+	utils.Divider("-")
+
+	InputKembali := utils.Input("Masukkan pilihan: ", func(input string) (bool, string) {
+		if input == "" {
+			return false, "Pilihan tidak boleh kosong"
+		}
+
+		if !utils.IsNumeric(input) {
+			return false, "Pilihan harus berupa angka"
+		}
+
+		if !utils.IsIn(input, []string{"0"}) {
+			return false, "Pilihan tidak valid"
+		}
+
+		return true, ""
+	})
+
+	if InputKembali == "0" {
+		utils.ClearScreen()
+		TiketController()
+	}
 }
