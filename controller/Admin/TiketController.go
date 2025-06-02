@@ -17,7 +17,7 @@ func TiketController() {
 
 	fmt.Println("[1] Tambah Tiket")
 	fmt.Println("[2] Cek Tiket")
-	fmt.Println("[3] Hapus Tiket")
+	fmt.Println("[3] Pembatalan Tiket")
 	fmt.Println("[0] Kembali ke Menu Utama")
 
 	utils.Divider("-")
@@ -41,6 +41,8 @@ func TiketController() {
 
 	switch pilihan {
 	case 1:
+		AddTiket()
+	case 2:
 
 	}
 }
@@ -136,10 +138,113 @@ func TiketStasiun(Label string, StasiunSebelumnya model.Stasiun) model.Stasiun {
 
 }
 
+func TiketRute(Rute []model.Rute, StasiunAwal model.Stasiun, StasiunTujuan model.Stasiun) model.Rute {
+	var PilihRute model.Rute
+	Stop := false
+	var SortBy string
+
+	for !Stop {
+
+		utils.ClearScreen()
+		var Data []model.Rute = Rute
+
+		if SortBy != "" {
+			Data = utils.InsertionSort(Rute, func(a, b model.Rute) bool {
+				switch SortBy {
+				case "1": // sort by harga asc
+					return a.Harga < b.Harga
+				case "2": // sort by harga desc
+					return a.Harga > b.Harga
+				case "3": // sort by waktu keberangkatan asc
+					return a.RuteBerhenti[0].Berangkat.Before(b.RuteBerhenti[0].Berangkat)
+				case "4": // sort by waktu keberangkatan desc
+					return a.RuteBerhenti[0].Berangkat.After(b.RuteBerhenti[0].Berangkat)
+				}
+
+				return false
+			})
+		}
+
+		TableRuteWithData(Data, StasiunAwal, StasiunTujuan, fmt.Sprintf("Rute dari %s ke %s", StasiunAwal.Nama, StasiunTujuan.Nama))
+
+		fmt.Println(utils.ColorText("[1] Urutkan", 90, 49, false))
+		fmt.Println(utils.ColorText("[2] Pilih Rute", 90, 49, false))
+
+		InputPilihan := utils.Input("Masukkan Pilihan: ", func(input string) (bool, string) {
+			if input == "" {
+				return false, "Pilihan tidak boleh kosong"
+			}
+			if !utils.IsNumeric(input) {
+				return false, "Pilihan harus berupa angka"
+			}
+			if !utils.IsIn(input, []string{"1", "2"}) {
+				return false, "Pilihan tidak valid"
+			}
+			return true, ""
+		})
+		Pilihan, _ := strconv.Atoi(InputPilihan)
+
+		switch Pilihan {
+		case 1:
+			utils.Divider("-")
+			fmt.Println(utils.ColorText("[1] Sort Harga (Rendah ke Tinggi)", 90, 49, false))
+			fmt.Println(utils.ColorText("[2] Sort Harga (Tinggi ke Rendah)", 90, 49, false))
+			fmt.Println(utils.ColorText("[3] Sort Waktu Keberangkatan (Paling Awal)", 90, 49, false))
+			fmt.Println(utils.ColorText("[4] Sort Waktu Keberangkatan (Paling Akhir)", 90, 49, false))
+
+			SortBy = utils.Input("Masukkan Pilihan: ", func(input string) (bool, string) {
+				if input == "" {
+					return false, "Pilihan tidak boleh kosong"
+				}
+				if !utils.IsNumeric(input) {
+					return false, "Pilihan harus berupa angka"
+				}
+				if !utils.IsIn(input, []string{"1", "2", "3", "4"}) {
+					return false, "Pilihan tidak valid"
+				}
+				return true, ""
+			})
+		case 2:
+			utils.Input("Masukan ID Rute yang ingin dipilih: ", func(input string) (bool, string) {
+
+				if input == "" {
+					return false, "ID Rute tidak boleh kosong"
+				}
+
+				sortedRute := utils.InsertionSort(Rute, func(a, b model.Rute) bool {
+					return a.Kode < b.Kode
+				})
+
+				var found bool
+				PilihRute, found, _ = utils.BinaryFindOne(sortedRute, model.Rute{Kode: input}, func(a, b model.Rute) int {
+					if a.Kode < b.Kode {
+						return -1
+					} else if a.Kode > b.Kode {
+						return 1
+					}
+					return 0
+				})
+
+				if !found {
+					return false, "Rute tidak ditemukan, silakan coba lagi"
+				}
+
+				Stop = true
+				return true, ""
+			})
+		}
+
+	}
+
+	return PilihRute
+}
+
 func AddTiket() {
+	var PilihRute model.Rute
 	StasiunAwal := TiketStasiun("Stasiun Awal", model.Stasiun{})
 	StasiunTujuan := TiketStasiun("Stasiun Tujuan", StasiunAwal)
 
+	utils.ClearScreen()
 	utils.PrintHead("Tambah Tiket")
 	fmt.Println("Stasiun Awal:", StasiunAwal.Nama, "-", StasiunAwal.Kota)
 	fmt.Println("Stasiun Tujuan:", StasiunTujuan.Nama, "-", StasiunTujuan.Kota)
@@ -206,38 +311,11 @@ func AddTiket() {
 
 	if len(Rute) == 0 {
 		utils.PrintMessage("Rute tidak ditemukan antara stasiun awal dan tujuan", "error")
+		AddTiket()
 		return
 	}
 
-	TableRuteWithData(Rute, StasiunAwal, StasiunTujuan, fmt.Sprintf("Rute dari %s ke %s", StasiunAwal.Nama, StasiunTujuan.Nama))
-
-	var PilihRute model.Rute
-	utils.Input("Masukan ID Rute yang ingin dipilih: ", func(input string) (bool, string) {
-
-		if input == "" {
-			return false, "ID Rute tidak boleh kosong"
-		}
-
-		sortedRute := utils.InsertionSort(Rute, func(a, b model.Rute) bool {
-			return a.Kode < b.Kode
-		})
-
-		var found bool
-		PilihRute, found, _ = utils.BinaryFindOne(sortedRute, model.Rute{Kode: input}, func(a, b model.Rute) int {
-			if a.Kode < b.Kode {
-				return -1
-			} else if a.Kode > b.Kode {
-				return 1
-			}
-			return 0
-		})
-
-		if !found {
-			return false, "Rute tidak ditemukan, silakan coba lagi"
-		}
-
-		return true, ""
-	})
+	PilihRute = TiketRute(Rute, StasiunAwal, StasiunTujuan)
 
 	utils.ClearScreen()
 	utils.PrintHead("Tambah Tiket | Konfirmasi")
@@ -397,4 +475,15 @@ func AddTiket() {
 		utils.PrintMessage("Proses pembatalan tiket", "error")
 	}
 	TiketController()
+}
+
+
+func CekTiket(){
+	utils.ClearScreen()
+	utils.PrintHead("Cek Tiket")
+
+
+	
+
+
 }
