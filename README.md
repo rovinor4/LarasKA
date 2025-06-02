@@ -1,44 +1,22 @@
+# LarasKA Tubes
+LarasKA adalah aplikasi reservasi tiket kereta api yang dibangun pakai Golang
 
-
-# LarasKA (Layanan Reservasi Kereta Api Sederhana)
-
-LarasKA adalah aplikasi reservasi tiket kereta api sederhana yang dibangun pakai Golang. Dengan LarasKA, lo bisa:
-
-- Lihat daftar stasiun dan rute kereta
-- Cari rute berdasarkan stasiun asal, tujuan, tanggal, harga, dan jam keberangkatan
-- Pesan tiket kereta dengan input data penumpang (nama & NIK)
-- Sorting rute berdasarkan jam, harga, kapasitas, atau kode kereta
-
-## Teknologi
-
-- Golang
-- Modul standar Go (fmt, time, bufio, dll)
+## Anggota
+- Rovino Ramadhani (10307240031)
+- Rangga Dani Prasetya (103072400057)
+- Setyo Nugroho (103072400045)
 
 ## Cara Instalasi
 
-1. Clone repo  
+1. Clone repo
    `git clone https://github.com/username/LarasKA.git`
-2. Masuk ke direktori proyek  
+2. Masuk ke direktori proyek
    `cd LarasKA`
-3. Build aplikasi  
+3. Build aplikasi
    `go build -o laraska`
-4. Jalankan  
+4. Jalankan
    `./laraska`
 
-## Cara Pakai
+## Dokumentasi
 
-1. Jalankan `./laraska`
-2. Ikuti menu interaktif untuk:
-   - Melihat stasiun
-   - Memilih stasiun asal & tujuan
-   - Memasukkan tanggal perjalanan
-   - Memilih rute & jumlah penumpang
-   - Input data penumpang dan generate kode tiket
-
-## Kontribusi
-
-PR dan issue welcome!  
-
-## Lisensi
-
-MIT License
+[Dokumentasi LarasKA](https://github.com/rovinor4/LarasKA/issues?q=is%3Aissue%20label%3Adocumentation)

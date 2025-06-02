@@ -1,20 +1,30 @@
-package controller
+package utils
 
 import (
+	"bufio"
 	"fmt"
-	"regexp"
+	"os"
 	"strconv"
 	"strings"
-	"golang.org/x/text/language"
-	"golang.org/x/text/message"
 )
 
+var ReaderBufio = bufio.NewReader(os.Stdin)
+
 func ClearScreen() {
-	fmt.Print("\033[H\033[2J")
+	fmt.Print("\033[H\033[2J\033[3J")
 }
 
-func PrintError(message string) {
-	fmt.Println("\033[31m" + message + "\033[0m")
+func PrintMessage(message string, status string) {
+	switch status {
+	case "error":
+		fmt.Println(ColorText(message, 31, 49, false))
+	case "success":
+		fmt.Println(ColorText(message, 32, 49, false))
+	case "warning":
+		fmt.Println(ColorText(message, 33, 49, false))
+	default:
+		fmt.Println(message)
+	}
 }
 
 func ColorText(text string, fg, bg int, bold bool) string {
@@ -66,11 +76,6 @@ func PrintBoxLeft(lebar int, paragraphs []string) {
 
 func Divider(s string) {
 	fmt.Println(strings.Repeat(s, 60))
-}
-
-func IsNumeric(input string) bool {
-	re := regexp.MustCompile(`^\d+$`)
-	return re.MatchString(input)
 }
 
 func AlignTeksCenter(teks string, width int) string {
@@ -137,8 +142,28 @@ func PrintTable(col []string, data []map[string]string, rowKey []string, gap int
 	fmt.Println(line)
 }
 
-func RupiahFormat(r int) string {
-	p := message.NewPrinter(language.Indonesian)
-	// fmt.Println(p.Sprintf("Rp%d", 1000000)) // Output: Rp1.000.000
-	return p.Sprintf("Rp %d", r)
+func Input(label string, validate func(string) (bool, string)) string {
+	input := ""
+	valid := false
+	var errMsg string
+
+	for !valid {
+		fmt.Print(label)
+		rawInput, err := ReaderBufio.ReadString('\n')
+
+		input = strings.TrimSpace(rawInput)
+		valid, errMsg = validate(input)
+
+		if err != nil {
+			PrintMessage("Error reading input: "+err.Error(), "error")
+			Divider("-")
+		}
+
+		if !valid && errMsg != "" {
+			PrintMessage(errMsg, "error")
+			Divider("-")
+		}
+	}
+
+	return input
 }
