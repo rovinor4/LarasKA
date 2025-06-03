@@ -1,7 +1,11 @@
+![LarasKA Logo](./Layanan%20Reservasi%20Kereta%20Api.png)
+
 # LarasKA Tubes
+
 LarasKA adalah aplikasi reservasi tiket kereta api yang dibangun pakai Golang
 
 ## Anggota
+
 - Rovino Ramadhani (10307240031)
 - Rangga Dani Prasetya (103072400057)
 - Setyo Nugroho (103072400045)
